@@ -233,6 +233,8 @@ sleep 1
 
 }
 
+########################################################################
+
 function _kvm_start { # Démarrer une VM
 #- Arg 1 => nom de la VM
 
@@ -398,6 +400,8 @@ fi
 sleep 1
 
 }
+
+########################################################################
 
 function _kvm_freeze { # Figer une VM
 #- Arg 1 => nom de la VM
