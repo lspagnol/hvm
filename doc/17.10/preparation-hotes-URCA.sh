@@ -274,6 +274,18 @@ EOF
 echo
 
 ########################################################################
+echo "* Désactivation IPv6 / hôte"
+
+grep -q "disable_ipv6=1" /etc/sysctl.conf
+if [ $? -ne 0 ] ; then
+cat<<EOF>>/etc/sysctl.conf
+
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+EOF
+fi
+
+########################################################################
 cat<<EOF
 ** Préparation terminée ! **
 
