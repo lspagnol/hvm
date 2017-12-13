@@ -5,8 +5,6 @@
 ########################################################################
 
 function _zfs_mount { # Monter les volumes de stockage des VMs
-#- return 0
-#-
 
 source ${HVM_BASE}/etc/zfs_mount.sh 2>/dev/null >/dev/null || ABORT "unable to execute '${HVM_BASE}/etc/zfs_mount.sh'"
 
@@ -15,8 +13,6 @@ return $?
 }
 
 function _zfs_umount { # Démonter les volumes de stockage des VMs
-#- return 0
-#-
 
 local e v
 
@@ -28,6 +24,8 @@ source ${HVM_BASE}/etc/zfs_umount.sh
 return $?
 
 }
+
+########################################################################
 
 function _zfs_snap_list_all {
 
@@ -71,6 +69,8 @@ done
 
 }
 
+########################################################################
+
 function _zfs_snap_compare {
 
 local r
@@ -87,6 +87,8 @@ rm /tmp/hvm.lock/snaps.host_rem
 return ${r}
 
 }
+
+########################################################################
 
 function _zfs_snap_create { # Créer des snapshots ZFS
 # Arg 1 -> timestamp
