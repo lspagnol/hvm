@@ -7,7 +7,6 @@
 function _kvms_status { # Déterminer / afficher si VMs actives / pas actives
 #- si '-v' passé en argument -> afficher état
 #- return '0' si actif, sinon return '1'
-#-
 
 [ "${1}" = "-v" ] && echo -n "VMs are "
 
@@ -23,8 +22,9 @@ fi
 
 }
 
-function _kvms_list { # Liste des VMs
-#-
+########################################################################
+
+function _kvms_list { # Afficher liste des VMs
 
 virsh list --all --name |grep -v '^$'
 
@@ -33,7 +33,6 @@ return 0
 }
 
 function _kvms_list_all { # Afficher liste + état des VMs
-#-
 
 virsh list --all |grep -v '^$'
 
@@ -42,7 +41,6 @@ return 0
 }
 
 function _kvms_list_running { # Afficher liste VMs actives
-#-
 
 virsh list --name --state-running |grep -v '^$'
 
@@ -51,7 +49,6 @@ return 0
 }
 
 function _kvms_list_freezed { # Afficher liste VMs figées
-#-
 
 virsh list --name --state-paused |grep -v '^$'
 
@@ -60,7 +57,6 @@ return 0
 }
 
 function _kvms_list_stopped { # Afficher liste VMs arrêtées
-#-
 
 virsh list --name --state-shutoff |grep -v '^$'
 
@@ -69,7 +65,6 @@ return 0
 }
 
 function _kvms_list_backups { # Afficher liste VMs avec sauvegarde
-#-
 
 ls -1 ${KVM_BACKUP_DIR} 2>/dev/null |sed 's/\.save//'
 
@@ -78,7 +73,6 @@ return 0
 }
 
 function _kvms_list_snapshots { # Afficher liste des VMs avec snapshot
-#-
 
 local vms vm
 
@@ -95,7 +89,6 @@ return 0
 }
 
 function _kvms_list_autostart { # Afficher la liste des VMs avec démarrage automatique
-#-
 
 local vms vm
 
@@ -113,7 +106,6 @@ return 0
 }
 
 function _kvms_list_prio { # Afficher la priorité des VMs
-#-
 
 local vms vm
 
@@ -127,12 +119,12 @@ return 0
 
 }
 
+########################################################################
+
 function _kvms_freeze { # Figer les VMs
-#-
 
 local vms vm
 
-#vms=$(_kvms_list_running)
 vms=$(_kvms_list_prio |sort -nr |awk '{print $2}')
 
 for vm in ${vms} ; do
@@ -150,11 +142,9 @@ return 0
 }
 
 function _kvms_unfreeze { # Reprise des VMs figées
-#-
 
 local vms vm
 
-#vms=$(_kvms_list_freezed)
 vms=$(_kvms_list_prio |sort -n |awk '{print $2}')
 
 for vm in ${vms} ; do
@@ -171,6 +161,7 @@ return 0
 
 }
 
+########################################################################
 
 function _kvms_backup { # Sauvegarder l'état des VMs
 #- Arg 1 -> timestamp
@@ -182,7 +173,6 @@ if [ -z "${1}" ] ; then
 	return 1
 fi
 
-#vms="$(_kvms_list_running) $(_kvms_list_freezed)"
 vms=$(_kvms_list_prio |sort -nr |awk '{print $2}')
 
 for vm in ${vms} ; do
@@ -200,11 +190,9 @@ return 0
 }
 
 function _kvms_restore { # Restaurer l'état des VMs
-#-
 
 local vm vms
 
-#vms=$(ls ${HVM_TMP_DIR}/backups 2>/dev/null)
 vms=$(_kvms_list_prio |sort -n |awk '{print $2}')
 
 for vm in ${vms} ; do
@@ -221,8 +209,9 @@ return 0
 
 }
 
+########################################################################
+
 function _kvms_start { # Démarrer les VMs dont le démarrage automatique est activé
-#-
 
 local vm vms
 
@@ -246,11 +235,9 @@ return 0
 }
 
 function _kvms_shutdown { # Arrêter les VMs
-#-
 
 local vms vm
 
-#vms="$(_kvms_list_running) $(_kvms_list_freezed)"
 vms=$(_kvms_list_prio |sort -nr |awk '{print $2}')
 
 for vm in ${vms} ; do
@@ -268,11 +255,9 @@ return 0
 }
 
 function _kvms_poweroff { # Forcer l'arrêt des VMs
-#-
 
 local vms vm
 
-#vms="$(_kvms_list_running) $(_kvms_list_freezed)"
 vms=$(_kvms_list_prio |sort -nr |awk '{print $2}')
 
 for vm in ${vms} ; do
@@ -289,9 +274,10 @@ return 0
 
 }
 
+########################################################################
+
 function _kvms_disable_libvirt_autostart { # Désactiver le démarrage automatique natif des VMs/libvirt
 #- Arg 1 => nom de la VM
-#-
 
 local vms vm
 
