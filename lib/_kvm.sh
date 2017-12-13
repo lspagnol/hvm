@@ -103,6 +103,8 @@ return 0
 
 }
 
+########################################################################
+
 function _kvm_backup { # Sauvegarder l'état de la VM
 #- Arg 1 => nom de la VM
 #- Arg 2 => timestamp
@@ -122,8 +124,6 @@ mkdir -p ${HVM_TMP_DIR}/backups
 
 _kvm_is_running ${1} || _kvm_is_freezed ${1}
 if [ $? -eq 0 ] ; then
-
-	#virsh domfsfreeze ${1} |grep -v '^$'
 
 	_kvm_has_snapshot ${1}
 	if [ $? -eq 0 ] ; then
@@ -152,8 +152,6 @@ if [ $? -eq 0 ] ; then
 	
 	fi
 
-	#virsh domfsthaw ${1} |grep -v '^$'
-
 else
 
 	ERROR "can't backup stopped VM '${1}'"
@@ -179,15 +177,11 @@ local snap
 _kvm_is_running ${1}
 if [ $? -ne 0 ] ; then
 
-	# Activer Qemu Guest Agent si nécessaire
-	###_kvm_ga_enable ${1}
-
 	_kvm_has_backup ${1}
 	if [ $? -eq 0 ] ; then
 
 		snap=$(<${HVM_TMP_DIR}/backups/${1})
 		if [ -z "${snap}" ] ; then
-
 			# La VM a été sauvegardée avec 'managedsave'
 
 			virsh start ${1} |grep -v '^$'
@@ -204,7 +198,6 @@ if [ $? -ne 0 ] ; then
 			return 0
 
 		else
-
 			# La VM a été sauvegardée avec 'snapshot-create-as'
 
 			virsh snapshot-revert ${1} --snapshotname ${1}@${snap} --running |grep -v '^$'
@@ -319,8 +312,7 @@ if [ $? -eq 0 ] ; then
 	# Echec ? => arrêt (mode utilisé par défaut => ?)
 	[ ${PIPESTATUS[0]} -eq 0 ] || virsh shutdown ${1} |grep -v '^$'
 
-	# Supprimer les sauvegardes / backups
-	
+	# Supprimer la sauvegarde
 	if [ -f ${KVM_BACKUP_DIR}/${vm}.save ] ; then
 	
 		WARNING "backup deleted for '${1}'"
@@ -328,8 +320,9 @@ if [ $? -eq 0 ] ; then
 	
 	fi
 	
+	# Supprimer le snapshot HVM
 	if [ -f ${HVM_TMP_DIR}/backups/${1} ] ; then
-	
+
 		snap=$(<${HVM_TMP_DIR}/backups/${1})
 	
 		if [ ! -z "${snap}" ] ; then
@@ -376,15 +369,15 @@ if [ $? -eq 0 ] ; then
 
 	virsh destroy ${1} |grep -v '^$'
 	
-	# Supprimer les sauvegardes / backups
-	
+	# Supprimer la sauvegarde
 	if [ -f ${KVM_BACKUP_DIR}/${1}.save ] ; then
 	
 		WARNING "backup deleted for '${1}'"
 		virsh managedsave-remove ${1} |grep -v '^$'
 	
 	fi
-	
+
+	# Supprimer le snapshot HVM
 	if [ -f ${HVM_TMP_DIR}/backups/${1} ] ; then
 	
 		snap=$(<${HVM_TMP_DIR}/backups/${1})
@@ -455,7 +448,7 @@ return 0
 
 }
 
-
+########################################################################
 
 function _kvm_ga_enable { # Activer Qemu Guest Agent pour une VM
 #- Arg 1 => nom de la VM
