@@ -9,7 +9,6 @@ function _kvm_is_running { # Vérifier si la VM fonctionne
 #- Codes retour:
 #- 0 -> la VM fonctionne
 #- 1 -> la VM ne fonctionne pas
-#-
 
 virsh domstate ${1} |grep -q '^running$'
 
@@ -26,7 +25,6 @@ function _kvm_is_freezed { # Vérifier si la VM est figée
 #- Codes retour:
 #- 0 -> la VM fonctionne
 #- 1 -> la VM ne fonctionne pas
-#-
 
 virsh domstate ${1} |grep -q '^paused$'
 
@@ -43,7 +41,6 @@ function _kvm_has_backup { # Vérifier si la VM a une sauvegarde
 #- Codes retour:
 #- 0 -> la VM a une sauvegarde
 #- 1 -> la VM n'a pas de sauvegarde
-#-
 
 if [ -f ${KVM_BACKUP_DIR}/${1}.save ] ; then
 	return 0
@@ -55,7 +52,6 @@ fi
 
 function _kvm_has_snapshot { # Vérifier si la VM a au moins un snapshot
 #- Arg 1 => nom de la VM
-#-
 
 ls ${KVM_SNAPSHOT_DIR}/${1}/*.xml 2>/dev/null >/dev/null
 
@@ -72,7 +68,6 @@ function _kvm_has_autostart { # Vérifier si la VM peut démarrer automatiquemen
 #- Codes retour:
 #- 0 -> démarrage automatique activé
 #- 1 -> démarrage automatique désactivé
-#- 
 
 virsh desc ${1} |egrep -q '^autostart=(yes|true|1)$'
 
@@ -89,7 +84,6 @@ function _kvm_prio { # Afficher la priorité de la VM
 #- priorité de 1 à 99, correspond à l'ordre d'activation de la VM
 #- utiliser la liste inversée pour la désactivation
 #- pas de priorité => 99 par défaut
-#-
 
 local p
 
@@ -108,7 +102,6 @@ return 0
 function _kvm_backup { # Sauvegarder l'état de la VM
 #- Arg 1 => nom de la VM
 #- Arg 2 => timestamp
-#-
 
 if [ -z "${2}" ] ; then
 	ERROR "timestamp is required"
@@ -165,7 +158,6 @@ sleep 1
 
 function _kvm_restore { # Restaurer l'état d'une VM
 #- Arg 1 => nom de la VM
-#-
 
 if [ -z "${1}" ] ; then
 	ERROR "VM name is required"
@@ -243,7 +235,6 @@ sleep 1
 
 function _kvm_start { # Démarrer une VM
 #- Arg 1 => nom de la VM
-#-
 
 if [ -z "${1}" ] ; then
 	ERROR "VM name is required"
@@ -289,7 +280,6 @@ sleep 1
 	
 function _kvm_shutdown { # Arrêter une VM
 #- Arg 1 => nom de la VM
-#-
 
 local snap
 
@@ -355,7 +345,6 @@ sleep 1
 
 function _kvm_poweroff { # Forcer l'arrêt d'une VM
 #- Arg 1 => nom de la VM
-#-
 
 local snap
 
@@ -412,7 +401,6 @@ sleep 1
 
 function _kvm_freeze { # Figer une VM
 #- Arg 1 => nom de la VM
-#-
 
 if [ -z "${1}" ] ; then
 	ERROR "VM name is required"
@@ -430,7 +418,6 @@ return 0
 
 function _kvm_unfreeze { # Reprise d'une VM figée
 #- Arg 1 => nom de la VM
-#-
 
 if [ -z "${1}" ] ; then
 	ERROR "VM name is required"
@@ -455,7 +442,6 @@ function _kvm_ga_enable { # Activer Qemu Guest Agent pour une VM
 #- Note: l'agent DOIT être installé manuellement dans la VM
 #- Windows: "QEMU guest agent" (CD virtio-win-xxx.iso)
 #- Ubuntu:  "apt-get install qemu-guest-agent"
-#-
 
 if [ -z "${1}" ] ; then
 	ERROR "VM name is required"
@@ -479,7 +465,6 @@ return 0
 function _kvm_ga_timesync { # Synchroniser l'horloge de la VM sur celle de l'hôte
 #- Arg 1 => nom de la VM
 #- Note: l'agent DOIT être installé manuellement dans la VM
-#-
 
 if [ -z "${1}" ] ; then
 	ERROR "VM name is required"
