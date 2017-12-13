@@ -1,0 +1,103 @@
+#!/bin/bash
+
+########################################################################
+# Tâches planifiées de l'hyperviseur
+########################################################################
+
+HVM_BASE="/usr/local/hvm"
+HVM_LIB="${HVM_BASE}/sbin/hvm.lib"
+
+########################################################################
+
+source ${HVM_LIB} 2>/dev/null ||\
+ { echo "Aborted: file '${HVM_LIB}' not found" ; exit 1 ; }
+
+########################################################################
+
+# Verrouillage par hôte distant ? => récupérer le nom du verrou
+if [ "${1}" = "--lockfile" ] ; then
+	LOCKFILE=${2}
+	shift ; shift
+fi
+
+########################################################################
+
+function cron_backup {
+
+echo "BEGIN   : local host is '${node_loc}', backup to remote host '${node_rem}' **"
+_hv_status || ABORT "not allowed while libvirt is stopped"
+echo
+hvm_backup
+echo "* Purge snapshots on local host"
+hvm_zfs_snap_purge -e
+echo "* Purge snapshots on remote host"
+ssh ${node_rem} "hvm zfs snap purge -exec"
+echo "END     : backup done"
+echo
+
+}
+
+function cron_migrate {
+
+echo "BEGIN   : local host is '${node_loc}', migration to remote host '${node_rem}' **"
+_hv_status || ABORT "not allowed while libvirt is stopped"
+echo
+hvm_migrate_secure
+echo "END     : active host is now '${node_rem}'"
+echo
+
+}
+
+########################################################################
+
+# Contrainte d'hébergement de l'hyperviseur
+if [ -f ${HVM_TMP_DIR}/constraint ] ; then
+	c=$(<${HVM_TMP_DIR}/constraint)
+	c=(${c})
+	h=${c[0]} # hôte
+	b=${c[1]} # timestamp début
+	e=${c[2]} # timestamp fin
+	d=$(date +%s) # timestamp actuel
+	if [ ${d} -gt ${e} ] ; then
+		# Date de la contraite dépassée -> supprimer la contrainte
+		hvm_constraint_unset >/dev/null
+	fi
+	if [ ${d} -ge ${b} ] && [ ${d} -le ${e} ] ; then
+		WARNING "$(hvm_constraint_show)"
+		echo
+		if [ "${h}" = "${node_loc}" ] ; then
+			cron_backup
+			exit 0
+		else
+			cron_migrate
+			exit 0
+		fi
+	else
+		cron_backup
+		exit 0
+	fi
+	
+fi
+
+# Numéro semaine du mois
+wom_now=$(expr 1 + $(date +%V) - $(date +%V -d $(date +%Y-%m-01)))
+
+# Numéro jour semaine
+dow_now=$(date +%u)
+
+if [ ! -z "${HVM_AUTOMIGRATE}" ] ; then
+	wom=${HVM_AUTOMIGRATE%:*}
+	dow=${HVM_AUTOMIGRATE#*:}
+fi
+
+if [ "${dow}" = "${dow_now}" ] || [ "${dow}" = "" ] ; then
+	if [ "${wom}" = "${wom_now}" ] || [ "${wom}" = "" ] ; then
+		cron_migrate
+	else
+		cron_backup
+	fi
+else
+	cron_backup
+fi
+
+exit 0

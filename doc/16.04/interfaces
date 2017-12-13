@@ -1,0 +1,67 @@
+# Exemple de configuration des interfaces réseau (4 ports)
+# '/etc/network/interfaces'
+# - 2 ports/LACP -> hyperviseur (adresse de service)
+# - 2 ports/LACP -> virtualisation
+# - 2 bridges/LACP/802.1q -> virtualisation
+
+# Interfaces de service => LACP
+# -----------------------------
+
+auto eno1
+ iface eno1 inet manual
+ bond-master bond0
+
+auto eno2
+ iface eno2 inet manual
+ bond-master bond0
+
+auto bond0
+ iface bond0 inet static
+ address 10.5.1.174
+ netmask 255.255.255.0
+ gateway 10.5.1.254
+ dns-nameservers 193.50.208.4
+ dns-search univ-reims.fr
+ bond-slaves eno1 eno2
+ bond-mode 802.3ad
+ bond-miimon 100
+ bond-lacp-rate fast
+ bond-xmit_hash_policy layer2+3
+
+# Interfaces de virtualisation => LACP
+# -----------------------------------
+
+auto eno3
+ iface eno3 inet manual
+ bond-master bond1
+
+auto eno4
+ iface eno4 inet manual
+ bond-master bond1
+
+auto bond1
+ iface bond1 inet manual
+ bond-slaves eno3 eno4
+ bond-mode 802.3ad
+ bond-miion 100
+ bond-lacp-rate fast
+ bond-xmit_hash_policy layer2+3
+
+# Interfaces de virtualisation => 802.1q/bridges
+# ----------------------------------------------
+
+auto vlan51
+ iface vlan51 inet manual
+ vlan-raw-device bond1
+ bridge_ports bond1.51
+ bridge_stp off
+ bridge_fd 0
+ bridge_maxwait 0
+
+auto vlan95
+ iface vlan95 inet manual
+ vlan-raw-device bond1
+ bridge_ports bond1.95
+ bridge_stp off
+ bridge_fd 0
+ bridge_maxwait 0

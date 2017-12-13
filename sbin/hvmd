@@ -1,0 +1,319 @@
+#!/bin/bash
+
+########################################################################
+# Démon de surveillance de l'hyperviseur
+########################################################################
+
+HVM_BASE="/usr/local/hvm"
+HVM_LIB="${HVM_BASE}/sbin/hvm.lib"
+
+########################################################################
+
+source ${HVM_LIB} 2>/dev/null ||\
+ { echo "Aborted: file '${HVM_LIB}' not found" ; exit 1 ; }
+
+########################################################################
+
+# Lecture des états
+
+function hvmd_hypervisor_state {
+# Etat hyperviseur
+# irl=0 => hyperviseur arrêté
+# irl=1 => hyperviseur actif
+
+_hv_status
+if [ $? -eq 0 ] ; then
+	irl=1
+else
+	irl=0
+fi
+
+}
+
+function hvmd_gateway_state {
+# Etat passerelle
+# changement d'etat => compteur
+# iga=0 => routeur injoignable
+# iga=1 => routeur OK
+
+ping -c1 -i1 -t1 ${HVM_GATEWAY} 2>/dev/null >/dev/null
+if [ $? -eq 0 ] ; then
+	[ -z "${gpc}" ] && gpc=${HVMD_GATEWAY_PING_RETRY}
+	[ ${gpc} -lt ${HVMD_GATEWAY_PING_RETRY} ] && (( gpc++ ))
+	if [ ${gpc} -eq ${HVMD_GATEWAY_PING_RETRY} ] ; then
+		iga=1
+	fi
+else
+	[ -z "${gpc}" ] && gpc=0
+	[ ${gpc} -gt 0 ] && (( gpc-- ))
+	if [ ${gpc} -eq 0 ] ; then
+		iga=0
+	fi
+fi
+
+}
+
+function hvmd_remote_hv_state {
+# Etat hyperviseur distant
+# irr=0 => stopped
+# irr=1 => running
+# irr=2 => unknown (hote injoignable)
+
+ping -c1 -i1 -t1 ${node_rem} 2>/dev/null >/dev/null
+if [ $? -eq 0 ] ; then # ping OK
+	ssh ${node_rem} pwd 2>/dev/null >/dev/null
+	if [ $? -eq 0 ] ; then # SSH OK
+		ssh ${node_rem} "hvm func _hv_status" 2>/dev/null >/dev/null
+			if [ $? -eq 0 ] ; then
+				irr=1
+			else
+				irr=0
+			fi
+	else # echec SSH
+		irr=2
+	fi
+else # echec ping
+	irr=2
+fi
+
+}      
+
+function hvmd_lock_state {
+# Etat du verrou
+# hil=0 => pas de verrou
+# hil=1 => hyperviseur verrouillé
+	
+if [ -z "${LOCKFILE}" ] ; then
+	hil=0
+else
+	hil=1
+fi
+
+}
+
+########################################################################
+
+# Boucle principale
+
+function hvmd_loop {
+
+while [ true ] ; do
+
+	# Etat du routeur le plus proche
+	hvmd_gateway_state	
+
+	# Etat de l'hyperviseur local
+	hvmd_hypervisor_state
+
+	# Etat de l'hyperviseur distant
+	hvmd_remote_hv_state
+
+	# Etat du verrou
+	hvmd_lock_state
+
+	LOG "hvmd: ** HYPERVISOR STATE **"
+	LOG "hvmd: LOCAL_HOST           = ${node_loc}"
+	LOG "hvmd: REMOTE_HOST          = ${node_rem}"
+	LOG "hvmd: IS_GATEWAY_AVAILABLE = ${iga}"
+	LOG "hvmd: IS_RUNNING_LOCAL     = ${irl}"
+	LOG "hvmd: IS_LOCKED            = ${hil}"
+	LOG "hvmd: WAS_RUNNING_LOCAL    = ${wrl}"
+	LOG "hvmd: IS_RUNNING_REMOTE    = ${irr}"
+	LOG "hvmd: GATEWAY_PING_COUNTER = ${gpc}/${HVMD_GATEWAY_PING_RETRY}"
+
+	case ${irl}${iga} in
+		11)	# l'hyperviseur fonctionne, le routeur est joignable
+			# => l'hôte est actif
+			LOG "hvmd: -> local hypervisor is running, gateway is available"
+			LOG "hvmd: -> nothing to do"
+			wrl=0
+		;;
+		10)	# l'hyperviseur fonctionne, le routeur n'est pas joignable
+			# => poser le verrou pour interdire un démarrage manuel et rester en attente
+			LOG "hvmd: -> local hypervisor is running, gateway is unavailable"
+			LOCK
+			if [ $? -eq 0 ] ; then
+				LOG "hvmd: -> LOCK local hypervisor"
+				LOG "hvmd: -> SUSPEND local hypervisor"
+				_kvms_backup $(date +%s)
+				_hv_stop
+				_hv_sharedIP_disable
+				wrl=1
+			else
+				LOG "hvmd: -> could not acquire lock and SUSPEND local hypervisor"
+			fi
+		;;
+		00)	# l'hyperviseur est arrêté, le routeur n'est pas joignable
+			if [ ${wrl} -eq 0 ] ; then
+				# l'hyperviseur ne fonctionnait pas
+				# => poser le verrou pour interdire un démarrage manuel
+				LOG "hvmd: -> local hypervisor is stopped, gateway is unavailable"
+				if [ -z "${LOCKFILE}" ] ; then
+					LOG "hvmd: -> LOCK local hypervisor"
+					LOCK
+					if [ $? -ne 0 ] ; then
+						LOG "hvmd: -> could not acquire lock"
+					fi
+				else
+					LOG "hvmd: -> nothing to do"
+				fi
+			else
+				LOG "hvmd: -> local hypervisor is suspended, gateway is unavailable"
+				LOG "hvmd: -> nothing to do"
+			fi
+		;;
+		01)	# l'hyperviseur est arrêté, le routeur est joignable
+			# => l'hôte est passif
+			case ${wrl} in
+				0) # l'hyperviseur ne fonctionnait pas
+					LOG "hvmd: -> local hypervisor is stopped, gateway is available"
+					case ${irr} in
+						0) 	# l'hôte distant est joignable, son hyperviseur est arrêté
+							# => démarrage possible sans risque, enlever le verrou pour autoriser le démarrage manuel
+							LOG "hvmd: -> remote hypervisor is not running"
+							LOG "hvmd: -> local hypervisor CAN BE STARTED"
+							if [ ! -z "${LOCKFILE}" ] ; then
+								LOG "hvmd: -> UNLOCK local hypervisor"
+								UNLOCK
+							fi
+						;;
+						1)	# l'hôte distant est joignable, son hyperviseur fonctionne
+							# => démarrage possible, enlever le verrou pour autoriser le démarrage manuel
+							#    mais il sera bloqué par l'adresse IP partagée
+							LOG "hvmd: -> remote hypervisor is running"
+							LOG "hvmd: -> local hypervisor SHOULD NOT BE STARTED"
+							if [ ! -z "${LOCKFILE}" ] ; then
+								LOG "hvmd: -> UNLOCK local hypervisor"
+								UNLOCK
+							fi
+						;;
+						2)	# l'hôte distant est injoignable, son état est inconnu
+							# => démarrage possible, enlever le verrou pour autoriser le démarrage manuel
+							#    l'hyperviseur distant sera bloqué par l'adresse IP partagée et ne pourra pas démarrer
+							LOG "hvmd: -> remote host is unavailable"
+							LOG "hvmd: -> local hypervisor COULD BE STARTED"
+							if [ ! -z "${LOCKFILE}" ] ; then
+								LOG "hvmd: -> UNLOCK local hypervisor"
+								UNLOCK
+							fi
+						;;
+					esac
+				;;
+				1) # l'hyperviseur fonctionnait
+					LOG "hvmd: -> local hypervisor is suspended, gateway is available"
+					case ${irr} in
+						0)	# l'hôte distant est joignable, son hyperviseur est arrêté
+							# => reprise automatique
+							LOG "hvmd: -> remote hypervisor is stopped: RESUME local hypervisor"
+							_hv_sharedIP_enable
+							_hv_start
+							_kvms_restore
+							wrl=0
+							if [ ! -z "${LOCKFILE}" ] ; then
+								LOG "hvmd: -> UNLOCK local hypervisor"
+								UNLOCK 
+							fi
+						;;
+						1)	# l'hôte distant est joignable, son hyperviseur a été démarré
+							# => arrêt complet de l'hyperviseur
+							LOG "hvmd: -> remote hypervisor is running: SHUTOFF local hypervisor"
+							_hv_start
+							_kvms_poweroff
+							_hv_stop
+							_hv_sharedIP_disable
+							wrl=0
+							if [ ! -z "${LOCKFILE}" ] ; then
+								LOG "hvmd: -> UNLOCK local hypervisor"
+								UNLOCK
+							fi
+						;;
+						2)	# l'hôte distant est injoignable, son état est inconnu
+							# => reprise automatique
+							#    l'hyperviseur distant sera bloqué par l'adresse IP partagée et ne pourra pas démarrer
+							LOG "hvmd: -> remote hypervisor is unreachable: RESUME local hypervisor"
+							_hv_sharedIP_enable
+							_hv_start
+							_kvms_restore
+							wrl=0
+							if [ ! -z "${LOCKFILE}" ] ; then
+								LOG "hvmd: -> UNLOCK local hypervisor"
+								UNLOCK
+							fi
+						;;
+					esac
+				;;
+			esac
+		;;
+	esac
+
+	LOG "hvmd: -> next loop in ${HVMD_SLEEP} seconds"
+	LOG "hvmd: -"
+
+	i=1
+	while [ ${i} -lt ${HVMD_SLEEP} ] ; do
+		(( i++ ))
+		sleep 1
+	done
+
+done
+
+}
+
+########################################################################
+
+# Contrôle des signaux du démon
+
+function hvmd_SIGHUP {
+
+LOG "hvmd: Daemon reloaded (SIGHUP)"
+source ${HVM_LIB}
+
+}
+
+function hvmd_SIGINT {
+
+UNLOCK
+rm ${HVMD_PIDFILE}
+LOG "hvmd: Daemon stopped (SIGINT)"
+exit
+
+}
+
+function hvmd_SIGQUIT {
+
+UNLOCK
+rm ${HVMD_PIDFILE}
+LOG "hvmd: Daemon stopped (SIGQUIT)"
+exit
+
+}
+
+########################################################################
+
+# Signal 'INT' (CTRC-C)
+trap hvmd_SIGINT INT
+
+# Signal 'QUIT' (stop)
+trap hvmd_SIGQUIT QUIT
+
+# Signal 'HUP' (reload)
+trap hvmd_SIGHUP HUP
+
+# Enregistrer le PID du démon
+echo $$ > ${HVMD_PIDFILE}
+
+LOG "hvmd: Daemon started"
+
+# Forcer mise à jour cache ARP
+false
+while [ $? -ne 0 ] ; do
+	sleep 1
+	ping -q -c 1 -W 1 ${HVM_GATEWAY} 2>/dev/null >/dev/null
+done
+true
+
+# Lancer la bloucle principale
+wrl=0
+hvmd_loop
+
+exit 0

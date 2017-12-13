@@ -1,0 +1,172 @@
+#!/bin/bash
+
+########################################################################
+# Librairie principale:
+# - fonctions de service
+# - chargement configuration
+# - vérification variables
+# - chargement modules
+########################################################################
+
+function WARNING { # Afficher un message d'avertissement
+#- Arg -> message d'avertissement
+#- return 0
+#-
+
+echo -e "WARNING : $@"
+return 0
+}
+
+function ERROR { # Afficher un message d'erreur
+#- Arg -> message d'erreur
+#- return 1
+#-
+
+echo -e "ERROR   : $@"
+return 1
+
+}
+
+function LOG { # Envoyer un message à Syslog
+#- Arg -> message à envoyer à syslog
+#- return 0
+#-
+echo "${@}" | logger -t "hvm"
+return 0
+
+}
+
+function ABORT { # Afficher message d'erreur + déverrouillage + abandon
+#- Arg -> message d'erreur
+#- exit 1
+#-
+
+echo -e "ABORTED : $@"
+UNLOCK
+exit 1
+
+}
+
+function LOCK { # Poser le verrou
+#- Arg 1 -> chemin complet du fichier verrou (optionnel, verrouillage distant)
+#- return 0 si verrou posé, sinon return 1
+#-
+
+if [ -z "${LOCKFILE}" ] ; then
+	# Pas de fichier verrou passé en argument
+	# Essayer de créer le dossier verrou
+	mkdir ${HVM_LOCK_DIR} 2>/dev/null || return 1
+	# OK => poser le fichier verrou, conserver le chemin dans la variable 'LOCKFILE'
+	LOCKFILE=$(mktemp --tmpdir=${HVM_LOCK_DIR} --suffix="-$$")
+else
+	# Le chemin du fichier verrou est passé en argument
+	if [ ! -f ${LOCKFILE} ] ; then
+		# Le fichier n'existe pas, essayer de créer le dossier verrou
+		mkdir ${HVM_LOCK_DIR} 2>/dev/null || return 1
+		# OK => poser le fichier verrou
+		touch ${LOCKFILE}
+	fi
+fi
+
+# Verrou posé
+return 0
+
+}
+
+function UNLOCK { # Enlever le verrou
+#- Arg 1 -> chemin complet du fichier verrou (optionnel, déverrouillage distant)
+#- return 0
+#-
+
+if [ ! -z "${LOCKFILE}" ] ; then
+	# La variable 'LOCKFILE' doit contenir le chemin du verrou
+	if [ -f ${LOCKFILE} ] ; then
+		# Le fichier verrou existe, enlever le verrou
+		rm ${LOCKFILE}
+		rmdir ${HVM_LOCK_DIR}
+		unset LOCKFILE
+	fi
+fi
+
+return 0
+
+}
+
+function LOCK_REMOTE { # Poser le verrou sur l'hôte distant
+#- Arg 1 -> chemin complet du fichier verrou (obligatoire)
+#- return 0 si verrou posé, sinon return 1
+#-
+
+ssh ${node_rem} "hvm --lockfile ${LOCKFILE} func LOCK" 2>/dev/null >/dev/null || return 1
+
+return 0
+
+}
+
+function UNLOCK_REMOTE { # Enlever le verrou sur l'hôte distant
+#- Arg 1 -> chemin complet du fichier verrou (obligatoire)
+#- return 0 si verrou distant enlevé, sinon return 1
+#-
+
+ssh ${node_rem} "hvm --lockfile ${LOCKFILE} func UNLOCK" 2>/dev/null >/dev/null
+
+return $?
+
+}
+
+function dateconv { # Convertir format date (permutation jour / mois)
+#- Arg 1 -> date
+#-
+
+local d
+
+d=${1//\// }
+d=(${d})
+echo ${d[1]}/${d[0]}/${d[2]}
+
+}
+
+########################################################################
+# Chargement configuration
+
+CONF_LOCAL="${HVM_BASE}/etc/local.conf"
+CONF_COMMON="${HVM_BASE}/etc/common.conf"
+
+# Charger d'abord la conf commune, les variables pourront être modifiées
+# par la conf locale si nécessaire
+
+source ${CONF_COMMON} 2>/dev/null || ABORT "file '${CONF_COMMON}' was not found."
+source ${CONF_LOCAL} 2>/dev/null || ABORT "file '${CONF_LOCAL}' was not found."
+
+########################################################################
+# Définition et vérification des variables
+
+[ -z "${HVM_HOSTS}" ] && ABORT "file '${CONF}': undefined parameter 'HVM_HOSTS'"
+
+# Déterminer le nom de l'hôte local   => variable 'node_loc'
+# Déterminer le nom de l'hôte distant => variable 'node_rem'
+
+HVM_HOSTS=(${HVM_HOSTS})
+[ ${#HVM_HOSTS[@]} -ne 2 ] && ABORT "file '${CONF}': 'HVM_HOSTS' must have 2 values"
+node_loc=${HOSTNAME}
+if [ "${node_loc}" = "${HVM_HOSTS[0]}" ] ; then
+	node_rem=${HVM_HOSTS[1]}
+else
+	node_rem=${HVM_HOSTS[0]}
+fi
+
+[ -z "${HVM_SHARED_IP}" ] && ABORT "file '${CONF}': undefined parameter 'HVM_SHARED_IP'"
+[ -z "${HVM_GATEWAY}" ] && ABORT "file '${CONF}': undefined parameter 'HVM_GATEWAY'"
+[ -z "${HVM_ZVOLS}" ] && ABORT "file '${CONF}': undefined parameter 'HVM_ZVOLS'"
+[ -z "${KVM_BACKUP_DIR}" ] && ABORT "file '${CONF}': undefined parameter 'KVM_BACKUP_DIR'"
+
+[ -z "${node_loc}" ] && ABORT "undefined value 'node_loc'"
+[ -z "${node_rem}" ] && ABORT "undefined value 'node_rem'"
+
+########################################################################
+# Chargement fonctions
+
+for lib in $(ls ${HVM_BASE}/lib/_*.sh) ; do
+	source ${lib}
+done
+unset lib

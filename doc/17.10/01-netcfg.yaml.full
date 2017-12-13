@@ -1,0 +1,72 @@
+# Exemple de configuration des interfaces réseau (4 ports)
+# '/etc/netplan/01-netcfg.yaml'
+# - 2 ports/LACP -> hyperviseur (adresse de service)
+# - 2 ports/LACP -> virtualisation
+# - 2 bridges/LACP/802.1q -> virtualisation
+#
+# *** !!! Les interfaces de virtualisation ne sont pas reconnues par Libvirt !!! ***
+#                     => NE PAS UTILISER CET EXEMPLE <=
+#
+
+# This file describes the network interfaces available on your system
+# For more information, see netplan(5).
+network:
+ version: 2
+ renderer: networkd
+ ethernets:
+   eno1:
+     dhcp4: false
+     dhcp6: false
+   eno2:
+     dhcp4: false
+     dhcp6: false
+   eno3:
+     dhcp4: false
+     dhcp6: false
+   eno4:
+     dhcp4: false
+     dhcp6: false
+ bonds:
+   bond0:
+     interfaces:
+       - eno1
+       - eno2
+     parameters:
+       mode: 802.3ad
+       lacp-rate: fast
+       transmit-hash-policy: layer2+3
+       all-slaves-active: true
+     addresses: [10.5.1.174/24]
+     gateway4: 10.5.1.254
+     nameservers:
+       addresses: [193.50.208.4]
+       search: [univ-reims.fr]
+   bond1:
+     interfaces:
+       - eno3
+       - eno4
+     parameters:
+       mode: 802.3ad
+       lacp-rate: fast
+       transmit-hash-policy: layer2+3
+       all-slaves-active: true
+ vlans:
+   bond1_51:
+     id: 51
+     link: bond1
+   bond1_95:
+     id: 95
+     link: bond1
+ bridges:
+   vlan51:
+     interfaces: [bond1_51]
+     dhcp4: false
+     parameters:
+       stp: false
+       forward-delay: 0
+   vlan95:
+     interfaces: [bond1_95]
+     dhcp4: false
+     parameters:
+       stp: false
+       forward-delay: 0

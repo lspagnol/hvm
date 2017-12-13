@@ -1,0 +1,240 @@
+------------------------------------------------------------------------
+|                         Résumé des procédures                        | 
+------------------------------------------------------------------------
+
+* Un hyperviseur est ACTIF si la commande "hvm status" retourne:
+
+Hypervisor is running
+Shared IP is enabled
+VMs are running
+
+
+* Un hyperviseur est PASSIF si la commande "hvm status" retourne:
+
+Hypervisor is stopped
+Shared IP is disabled
+VMs are stopped
+
+
+**************** Opérations courantes (tous les hôtes) *****************
+
+* Vérifier l'état du serveur:
+
+  -> "hvm status"
+
+
+* Afficher l'état des VMs:
+
+  -> "hvm vms list all"
+
+
+******************* Opérations courantes (hôte ACTIF) ******************
+
+* Cycle complet de sauvegarde de l'état des VMs:
+- Sauvegarde VMs -> snapshot ZFS -> restauration VMs -> synchro ZFS
+
+  -> "hvm backup"
+
+
+* Migration "sécurisée" des VMs:
+- Fonctionne dans tous les cas
+- Interruption "longue" des VMs
+- Snapshot ZFS -> synchro ZFS -> sauvegarde VMs -> snapshot ZFS
+  -> synchro ZFS -> restauration VMs -> bascule hôtes
+
+  -> "hvm migrate secure"
+
+
+* Migration "non sécurisée" des VMs:
+- **NE FONCTIONNE PAS** si une VM a des snapshots libvirt/Qemu
+- **NE FONCTIONNE PAS** si une VM est figée
+- **AVERTISSEMENT** bug libvirt 1.3.1, certaines VMs ne redémarrent pas
+  toujours correctement ... donc utilisation non recommandée
+- Interruption "courte" des VMs
+- Snapshot ZFS -> synchro ZFS -> migration individuelle -> bascule hôtes
+
+  -> "hvm migrate unsecure"
+
+
+* Fixer une contrainte d'hébergement de l'hyperviseur:
+- Permet d'obliger l'hyperviseur à fonctionner sur un hôte particulier
+  sur une période donnée
+- La contrainte est exécutée au cours de la tâche planifiée "hvm-cron",
+  elle est prioritaire sur le cycle normal des sauvegardes et migrations
+- Elle permet d'éviter les migrations (suspension de service) au cours
+  de la journée pour, par exemple, libérer un hôte (maintenance)
+
+  S'assurer que l'hôte "HOST-xx" sera actif aujourd'hui
+  -> "hvm constraint set HOST-xx today"
+
+  S'assurer que l'hôte "HOST-xx" sera actif demain
+  -> "hvm constraint set HOST-xx tomorrow"
+
+  S'assurer que l'hôte "HOST-xx" sera actif du 20/12/2017 au 3/1/2018
+  inclus
+  -> "hvm constraint set HOST-xx 20/12/2017 3/1/2018"
+
+
+* Arrêt complet de l'hyperviseur:
+- **AVERTISSEMENT** ne JAMAIS lancer cette opération en se connectant
+  via l'adresse IP partagée, TOUJOURS se connecter à l'adresse IP
+  principale de l'hôte ACTIF
+- Vérifier si l'hyperviseur est ACTIF  -> "hvm status"
+- Si OK, Migrer les VMs                -> "hvm migrate secure"
+- Vérifier si l'hyperviseur est PASSIF -> "hvm status"
+- Si OK, Arrêter le serveur            -> "shutdown -h now"
+
+
+***************** Opérations courantes (hôte PASSIF) *******************
+
+* Arrêt complet de l'hyperviseur:
+- Vérifier si l'hyperviseur est PASSIF -> "hvm status"
+- Si OK, Arrêter le serveur            -> "shutdown -h now"
+
+
+*************************** En cas de panne ****************************
+
+* Déterminer quel machine était l'hôte ACTIF et l'hôte passif:
+- Consulter les logs (/var/log/syslog)
+- Consulter les mails de notification (hvm-cron)
+
+
+* Il faut essayer de REDEMARRER EN PRIORITE sur le dernier hôte ACTIF:
+- Démarrer l'hyperviseur   -> "hvm hv start"
+- Démarrer les VMs         -> "hvm vms start"
+
+
+* Si les VMs sont HS / inconsistantes, il faut restaurer leur état à
+  partir de la denière sauvegarde consistante:
+- Arrêter l'hyperviseur    -> "hvm hv stop"
+- Rollback ZFS             -> "hvm zfs snap rollback lasts"
+- Démarrer l'hyperviseur   -> "hvm hv start"
+- Restaurer l'état des VMs -> "hvm vms restore"
+
+
+* Si l'hôte ACTIF est totalement indisponible, il faut restaurer l'état
+  des VMs sur l'hôte PASSIF:
+- Démarrer l'hyperviseur   -> "hvm hv start"
+- Restaurer l'état des VMs -> "hvm vms restore"
+
+
+* Les données manquantes peuvent être ré-injectées à partir du système
+  de sauvegarde centralisé (pensez à installer un agent de sauvegarde)
+
+
+************************ Pilotes Virtio / VMs **************************
+
+* Windows:
+- Installer les pilotes Virtio-win
+- Installer le "Guest Agent"
+
+
+* Debian, Ubuntu, Linux-Mint:
+  "apt-get install qemu-guest-agent"
+
+
+* Redhat, CentOS, Fedora:
+  "yum install qemu-guest-agent"
+
+
+*************************** Configuration ******************************
+
+* Editer le fichier '/usr/local/hvm/local.conf' et ajuster les variables
+- "HVM_SERVICE_IFACE"
+- "HVM_HOSTS"
+- "HVM_SHARED_IP"
+- "HVM_GATEWAY"
+
+
+* Tâches planifiées => ajouter à la CRONTAB:
+45 12	* * *	root	/usr/local/hvm/sbin/hvm zfs snap createsync
+00 22   * * *   root    /usr/local/hvm/sbin/hvm-cron |s-nail -S "smtp=smtp://localhost" -s "hvm-cron" KVM-ADMIN@DOMAINE
+
+******************************** NOTES *********************************
+
+* Le démarrage automatique natif des VMs est systématiquement neutralisé
+  pour que le script "hvm" puisse contrôler totalement les VMs.
+
+* Le démarrage automatique est réalisé si la phrase "autostart=yes" est
+  indiqué dans le champ "Description" de la VM.
+  Virt-manager => Appercu => Détails de base => Description
+
+* La priorité d'activation des VMs peut être indiqué en ajoutant la
+  phrase "prio=xx" dans le champ "Description" de la VM.
+  - la priorité la plus élevée est "1"
+  - la priorité la plus basse est "99"
+  - pas de priorité => "99" par défaut
+  - les VMs sont activées dans l'ordre de priorité
+    => de la plus haute à la plus basse
+  - les VMs sont désactivées dans l'ordre inverse de priorité
+    => de la plus basse à la plus haute
+
+------------------------------------------------------------------------
+|                   Résumé des commandes disponibles                   | 
+------------------------------------------------------------------------
+
+* hvm 
+|--* status             Etat de l'hyperviseur (hv, sharedIP, vms)
+|
+|--* constraint         Contrainte d'hébergement de l'hyperviseur
+|  |--* show            Afficher la contrainte
+|  |--* set             Fixer la contrainte
+|  |--* unset           Supprimer la contrainte
+|
+|--* hv                 Contrôle de l'hyperviseur
+|  |--* status          Etat de l'hyperviseur
+|  |--* start           Démarrer l'hyperviseur
+|  |--* stop            Arrêter l'hyperviseur
+|  |--* sharedIP        Contrôle de l'adresse IP partagée
+|     |--* enable       Activer l'adresse IP partagée
+|     |--* disable      Désactiver l'adress IP partagée
+|
+|--* vm                 Contrôle individuel des VM
+|  |--* status          Etat d'une VM
+|  |--* start           Démarrer une VM
+|  |--* backup          Sauvegarder l'état d'une VM
+|  |--* restore         Restaurer l'état d'une VM
+|  |--* freeze          Figer une VM
+|  |--* unfreeze        Reprise d'une VM figée
+|  |--* shutdown        Arrêter une VM
+|  |--* poweroff        Couper l'alimentation d'une VM
+|
+|--* vms                Contrôle collectif des VMs
+|  |--* status          Etat des VMs
+|  |--* list            Liste des VMs
+|  |  |--* all          Toutes les VMs (avec leur état)
+|  |  |--* running      Seulement les VMs en marche
+|  |  |--* freezed      Seulement les VMs figées
+|  |  |--* stopped      Seulement les VMs arrêtées
+|  |  |--* backups      Seulement les VMs avec sauvegarde
+|  |  |--* autostart    Seulement les VMs avec démarrage automatique
+|  |  |--* prio         Priorité des VMs
+|  |--* start           Démarrer les VMs avec démarrage automatique
+|  |--* backup          Sauvegarder l'état des VMs
+|  |--* restore         Restaurer l'état des VMs
+|  |--* freeze          Figer les VMs
+|  |--* unfreeze        Reprise des VMs figées
+|  |--* shutdown        Arrêter les VMs
+|  |--* poweroff        Couper l'alimentation des VMs
+|
+|
+|--* backup             Cycle de sauvegarde/synchro complet des VMs
+|
+|--* migrate            Migrer les VMs (bascule ACTIF/PASSIF des hôtes)
+|  |--* secure          Migration avec interruption longue des VMs
+|  |--* unsecure        Migration avec interruption courte des VMs
+|
+|--* zfs                Contrôle des volumes ZFS
+|  |--* snap            Contrôle des snapshots ZFS
+|  |  |--* create       Créer les snapshots ZFS
+|  |  |--* sync         Synchroniser les snapshots sur l'hôte passif
+|  |  |--* createsync   Créer et synchroniser les snapshots
+|  |  |--* rollback     Retour arrière sur un snapshot
+|  |  |--* purge        Purger les snapshots
+|  |  |--* list         Liste des snapshots
+|  |     |--* all       Liste de tous les snapshots
+|  |     |--* dates     Liste des snapshots racine par date
+|  |     |--* lasts     Liste des snapshots les plus récents
+|  |--* mount           Monter les volumes ZFS
+|  |--* umount          Démonter les volumes ZFS
+

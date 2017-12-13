@@ -1,0 +1,89 @@
+########################################################################
+# Fichier de configuration global
+# **!! Ne pas modifier ce fichier !!**
+# Paramètres de configuration communs à tous les sites. Si des variables
+# doient être modifiées, utilisez le fichier "local.conf"
+########################################################################
+
+# SSH non bloquant
+alias ssh='ssh -o "NumberOfPasswordPrompts 0" -o "StrictHostKeyChecking yes" -o "Compression no"'
+
+# Libvirt: répertoires système
+KVM_LIBVIRT_ETC_DIR="/etc/libvirt"
+KVM_LIBVIRT_VARLIB_DIR="/var/lib/libvirt"
+
+# Libvirt: stockage des backups KVM
+KVM_BACKUP_DIR="${KVM_LIBVIRT_VARLIB_DIR}/qemu/save"
+
+# Libvirt: stockage des définition des snapshots KVM
+KVM_SNAPSHOT_DIR="${KVM_LIBVIRT_VARLIB_DIR}/qemu/snapshot"
+
+# Libvirt: machines virtuelles avec démarrage automatique
+KVM_AUTOSTART_DIR="${KVM_LIBVIRT_ETC_DIR}/qemu/autostart"
+
+########################################################################
+
+# HVM: dossier de verrouillage local
+HVM_LOCK_DIR="/tmp/hvm.lock"
+
+# HVM: dossier de stockage qui sera synchronisé via ZFS
+HVM_TMP_DIR="/var/lib/hvm"
+
+########################################################################
+
+# Volumes ZFS partagés / synchronisés
+HVM_ZVOLS="SSD/SHARED ROT/SHARED"
+
+# Nombre de snapshots ZFS les plus récents qui ne doivent jamais être
+# supprimés (_zfs_snap_purge)
+HVM_KEEP_LASTS_ZFS_SNAPSHOTS="2"
+
+########################################################################
+
+# Pid du démon de surveillance
+HVMD_PIDFILE="/var/run/hvmd.pid"
+
+# Nombre de tentatives de ping avec le routeur avant changement d'etat
+HVMD_GATEWAY_PING_RETRY="5"
+
+# Attente entre chaque boucle du démon de surveillance
+HVMD_SLEEP="60"
+#HVMD_SLEEP="5"
+
+########################################################################
+
+# Migration automatique des VMs (bascule ACTIF/PASSIF) pendant la
+# sauvegarde. Critère de décision pour la migration automatique.
+# Pas de valeur -> pas de migration automatique
+# - première valeur: numéro semaine du mois (1 à 5), vide pour chaque
+#   semaine
+# - seconde valeur : numéro du jour de la semaine (1 à 7), vide pour
+#   chaque jour
+#   "1" -> lundi, "7" -> dimanche
+# - "0" pour le numéro du jour ou de semaine -> désactivé
+
+# Tous les premiers samedi du mois:
+# HVM_AUTOMIGRATE="1:6"
+
+# Tous les dimanche:
+HVM_AUTOMIGRATE=":7"
+
+########################################################################
+
+# Purge des snapshots
+# 2 valeurs, séparateur ":", plusieurs couples de valeurs séparés par
+# un espace.
+# - première valeur: traiter les snapshots qui plus vieux que (heures)
+# - deuxième valeur: ne pas supprimer les snapshots qui correspondent
+#   au motif (format HHMM)
+
+# Traiter les snapshots de plus de 7 jours, ne pas supprimer ceux qui
+# sont effectués entre 22h00 et 23h59
+# HVM_SNAPSHOT_PURGE="168:2[2,3].."
+
+# Supprimer tous les snapshots de plus de 30 jours
+# HVM_SNAPSHOT_PURGE="720:"
+
+# Supprimer les snapshots de plus de 30 jours, et les snapshots de plus
+# de 2 jours qui n'ont pas été effectués entre 22h00 et 23h59
+HVM_SNAPSHOT_PURGE="720: 48:2[2,3].."

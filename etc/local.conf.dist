@@ -1,0 +1,17 @@
+########################################################################
+# Fichier de configuration local
+# Paramètres de configuration spécifiques au site
+# Utiliser ce fichier pour surcharger le contenu de 'common.conf'
+########################################################################
+
+# Interface de service de l'hôte
+HVM_SERVICE_IFACE="bond0"
+
+# Nom réseau des deux hyperviseurs
+HVM_HOSTS="kvm-rs-01 kvm-rs-02"
+
+# Adresse IP de service partagée (active uniquement sur l'hôte ACTIF)
+HVM_SHARED_IP="10.5.1.175"
+
+# Routeur le plus proche des hôtes
+HVM_GATEWAY="10.5.1.254"

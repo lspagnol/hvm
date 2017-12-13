@@ -1,0 +1,301 @@
+#!/bin/bash
+
+########################################################################
+# Script de contrôle de l'hyperviseur
+########################################################################
+
+HVM_BASE="/usr/local/hvm"
+HVM_LIB="${HVM_BASE}/sbin/hvm.lib"
+
+########################################################################
+
+source ${HVM_LIB} 2>/dev/null ||\
+ { echo "Aborted: file '${HVM_LIB}' not found" ; exit 1 ; }
+
+########################################################################
+
+# Verrouillage par hôte distant ? => récupérer le nom du verrou
+if [ "${1}" = "--lockfile" ] ; then
+	LOCKFILE=${2}
+	shift ; shift
+fi
+
+########################################################################
+
+case ${1} in
+
+	status)
+		hvm_status
+	;;
+
+	backup)
+		hvm_backup
+	;;
+
+	constraint)
+		shift
+		case ${1} in
+			show)
+				hvm_constraint_show
+			;;
+			set)
+				shift
+				if [ -z "${2}" ] || [ -z "${1}" ] ; then
+					echo "Usage hvm constraint set HOST today|tomorrow|DATE [DATE]"
+					exit 0
+				fi
+				hvm_constraint_set ${1} ${2} ${3}
+			;;
+			unset)
+				hvm_constraint_unset
+			;;
+			*)
+				echo "Usage hvm constraint show|set|unset"
+				exit 0
+			;;
+		esac
+	;;
+
+	hv)
+		shift
+		case ${1} in
+			status)
+				hvm_hv_status
+			;;
+			start)
+				hvm_hv_start
+			;;
+			stop)
+				hvm_hv_stop
+			;;
+			sharedIP)
+				shift
+				case ${1} in
+					enable)
+						hvm_hv_sharedIP_enable
+					;;
+					disable)
+						hvm_hv_sharedIP_disable
+					;;
+					*)
+						echo "Usage: hvm hv sharedIP enable|disable"
+						exit 0
+					;;
+				esac
+			;;
+			*)
+				echo "Usage: hvm hv status|start|stop|sharedIP"
+				exit 0
+			;;
+		esac
+	;;
+
+	vm)
+		shift
+		case ${1} in
+			status)
+				hvm_vm_status ${2}
+			;;
+			backup)
+				hvm_vm_backup ${2}
+			;;
+			restore)
+				hvm_vm_restore ${2}
+			;;
+			start)
+				hvm_vm_start ${2}
+			;;
+			freeze)
+				hvm_vm_freeze ${2}
+			;;
+			unfreeze)
+				hvm_vm_unfreeze ${2}
+			;;
+			shutdown)
+				hvm_vm_shutdown ${2}
+			;;
+			poweroff)
+				hvm_vm_poweroff ${2}
+			;;
+			*)
+				echo "Usage: hvm vm status|backup|restore|start|freeze|unfreeze|shutdown|poweroff"
+				exit 0
+			;;
+		esac
+	;;
+
+	vms)
+		shift
+		case ${1} in
+			status)
+				hvm_vms_status
+			;;
+			list)
+				shift
+				case ${1} in
+					all)
+						hvm_vms_list_all
+					;;
+					running)
+						hvm_vms_list_running
+					;;
+					freezed)
+						hvm_vms_list_freezed
+					;;
+					stopped)
+						hvm_vms_list_stopped
+					;;
+					backups)
+						hvm_vms_list_backups
+					;;
+					autostart)
+						hvm_vms_list_autostart
+					;;
+					prio)
+						hvm_vms_list_prio
+					;;
+					*)
+						echo "Usage: hvm vms list all|running|freezed|stopped|backups|autostart|prio"
+						exit 0
+					;;
+				esac
+			;;
+			start)
+				hvm_vms_start
+			;;
+			freeze)
+				hvm_vms_freeze
+			;;
+			unfreeze)
+				hvm_vms_unfreeze
+			;;
+			shutdown)
+				hvm_vms_shutdown
+			;;
+			poweroff)
+				hvm_vms_poweroff
+			;;
+			backup)
+				hvm_vms_backup
+			;;
+			restore)
+				hvm_vms_restore
+			;;
+			*)
+				echo "Usage: hvm vms status|list|start|freeze|unfreeze|shutdown|poweroff|backup|restore"
+				exit 0
+			;;
+		esac
+	;;
+
+	migrate)
+		shift
+		case ${1} in
+			unsecure)
+				hvm_migrate_unsecure
+			;;
+			secure)
+				hvm_migrate_secure
+			;;
+			*)
+				echo "Usage: hvm migrate secure|unsecure"
+				exit 0
+			;;
+		esac
+	;;
+
+	zfs)
+		shift
+		case ${1} in
+			mount)
+				hvm_zfs_mount
+			;;
+			umount)
+				hvm_zfs_umount
+			;;
+			snap)
+				shift
+				case ${1} in
+					list)
+						shift 
+						case ${1} in
+							all)
+								hvm_zfs_snap_list_all
+							;;
+							dates)
+								hvm_zfs_snap_list_dates
+							;;
+							lasts)
+								hvm_zfs_snap_list_lasts
+							;;
+							*)
+								echo "Usage: hvm zfs snap list all|dates|lasts"
+								exit 0
+							;;
+						esac
+					;;
+					create)
+						hvm_zfs_snap_create
+					;;
+					sync)
+						hvm_zfs_snap_sync
+					;;
+					createsync)
+						hvm_zfs_snap_createsync
+					;;
+					rollback)
+						shift 
+						case ${1} in
+							"")
+								echo "Usage: hvm zfs snap rollback lasts|SNAP_NUMBER"
+								exit 0
+							;;
+							*) 
+								hvm_zfs_snap_rollback ${1}
+							;;
+						esac
+					;;
+					purge)
+						shift
+						case ${1} in
+							"")
+								echo "Usage: hvm zfs snap purge -show|-exec"
+								exit 0
+							;;
+							-show)
+								hvm_zfs_snap_purge
+							;;
+							-exec)
+								hvm_zfs_snap_purge -e
+							;;
+						esac
+					;;
+					*)
+						echo "Usage: hvm zfs snap list|create|sync|createsync|rollback|purge"
+						exit 0
+					;;
+				esac
+			;;
+		*)
+			echo "Usage: hvm zfs snap|mount|umount"
+			exit 0
+		;;
+		esac
+	;;
+	
+	func)
+		shift
+		"${@}"
+	;;
+
+	help)
+		cat ${HVM_BASE}/doc/hvm_help.txt
+		exit 0
+	;;
+
+	*)
+		echo "Usage: hvm status|constraint|hv|vm|vms|backup|migrate|zfs|help"
+		exit 0
+	;;
+
+esac
