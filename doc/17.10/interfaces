@@ -1,23 +1,7 @@
 # Exemple de configuration des interfaces réseau pour Libvirt
 # => '/etc/network/interfaces'
-#
-# => 2 bridges/LACP/802.1q
-
-auto eno3
- iface eno3 inet manual
- bond-master bond1
-
-auto eno4
- iface eno4 inet manual
- bond-master bond1
-
-auto bond1
- iface bond1 inet manual
- bond-slaves eno3 eno4
- bond-mode 802.3ad
- bond-miion 100
- bond-lacp-rate fast
- bond-xmit_hash_policy layer2+3
+# => Libvirt peut accéder à ces interfaces
+# => Définition des VLANs utilisés par Libvirt
 
 auto vlan51
  iface vlan51 inet manual
