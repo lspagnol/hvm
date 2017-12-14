@@ -5,8 +5,6 @@
 ########################################################################
 
 function hvm_status { # Etat complet de l'hyperviseur
-#- Pas d'argument
-#-
 
 _hv_status -v
 _hv_sharedIP_status -v
@@ -17,8 +15,6 @@ _kvms_status -v
 ########################################################################
 
 function hvm_backup { # Cycle de sauvegarde complet des VMs (backup + snap ZFS + sync ZFS)
-#- Pas d'argument
-#- 
 
 local t0 t1 t2 t3
 local last_snap_loc last_snap_rem
@@ -138,8 +134,6 @@ echo
 ########################################################################
 
 function hvm_constraint_show { # Afficher la contrainte d'hébergement des VMs
-#- Pas d'argument
-#-
 
 local c
 
@@ -159,7 +153,6 @@ function hvm_constraint_set { # Paramétrer la contrainte d'hébergement des VMs
 #- Arg 1 -> nom de l'hôte
 #- Arg 2 -> today | tomorow | date début (J/M/AAAA)
 #- Arg 3 -> date fin optionnelle ((J/M/AAAA)
-#-
 
 local d0 d1
 
@@ -204,8 +197,6 @@ return 0
 }
 
 function hvm_constraint_unset { # Annuler la contrainte d'hébergement des VMs
-#- Pas d'argument
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
@@ -222,8 +213,6 @@ return 0
 ########################################################################
 
 function hvm_migrate_unsecure { # Migration "rapide" des VMs
-#- Pas d'argument
-#-
 
 local t0 t1
 local vms vm
@@ -360,11 +349,7 @@ echo
 
 }
 
-########################################################################
-
 function hvm_migrate_secure { # Migration "sécurisée" des VMs
-#- Pas d'argument
-#-
 
 local t0 t1 t2 t3 t4
 local last_snap_loc last_snap_rem
@@ -550,8 +535,6 @@ echo
 ########################################################################
 
 function hvm_zfs_mount { # Monter les volumes ZFS de l'hyperviseur
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 
@@ -561,11 +544,7 @@ UNLOCK
 
 }
 
-########################################################################
-
 function hvm_zfs_umount { # Démonter les volumes ZFS de l'hyperviseur
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 _hv_status && ABORT "not allowed while libvirt is running"
@@ -580,8 +559,6 @@ UNLOCK
 ########################################################################
 
 function hvm_hv_status { # Etat de l'hyperviseur (libvirt)
-#- Pas d'argument
-#-
 
 _hv_status -v
 
@@ -590,8 +567,6 @@ _hv_status -v
 ########################################################################
 
 function hvm_hv_start { # Démarrer l'hyperviseur
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 _hv_status && ABORT "libvirt is already running"
@@ -603,11 +578,7 @@ UNLOCK
 
 }
 
-########################################################################
-
 function hvm_hv_stop { # Arrêter l'hyperviseur
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 _hv_status || ABORT "libvirt is already stopped"
@@ -626,8 +597,6 @@ UNLOCK
 ########################################################################
 
 function hvm_hv_sharedIP_enable { # Activer l'adresse IP partagée
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 
@@ -636,8 +605,6 @@ _hv_sharedIP_enable
 UNLOCK
 
 }
-
-########################################################################
 
 function hvm_hv_sharedIP_disable { # Désactiver l'adresse IP partagée
 #- Pas d'argument
@@ -655,7 +622,6 @@ UNLOCK
 
 function hvm_vm_status { # Etat d'une VM
 #- Arg 1 -> nom VM
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
@@ -676,7 +642,6 @@ return 0
 
 function hvm_vm_start { # Démarrer une VM
 #- Arg 1 -> nom VM
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
@@ -699,7 +664,6 @@ return 0
 
 function hvm_vm_freeze { # Figer une VMs
 #- Arg 1 -> nom VM
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
@@ -718,11 +682,8 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vm_unfreeze { # Reprise d'une VM figée
 #- Arg 1 -> nom VM
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
@@ -743,7 +704,6 @@ return 0
 
 function hvm_vm_shutdown { # Arrêt d'une VM
 #- Arg 1 -> nom VM
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
@@ -764,11 +724,8 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vm_poweroff { # Couper une VM
 #- Arg 1 -> nom VM
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
@@ -791,7 +748,6 @@ return 0
 
 function hvm_vm_backup { # Sauvegarder l'état d'une VM
 #- Arg 1 -> nom VM
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
@@ -812,11 +768,8 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vm_restore { # Restaurer une VM sauvegardée
 #- Arg 1 -> nom VM
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
@@ -840,8 +793,6 @@ return 0
 ########################################################################
 
 function hvm_vms_status { # Etat des VMs
-#- Pas d'argument
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
@@ -853,9 +804,7 @@ return 0
 
 ########################################################################
 
-function hvm_vms_start {
-#- Pas d'argument
-#-
+function hvm_vms_start { # Démarrer les VMs dont le démarrage automatique est activé
 
 LOCK || ABORT "unable to acquire lock"
 _hv_status || ABORT "not allowed while libvirt is stopped"
@@ -871,8 +820,6 @@ return 0
 ########################################################################
 
 function hvm_vms_freeze { # Figer toutes les VMs
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 _hv_status || ABORT "not allowed while libvirt is stopped"
@@ -885,11 +832,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vms_unfreeze { # Reprise des VMs figées
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 _hv_status || ABORT "not allowed while libvirt is stopped"
@@ -906,8 +849,6 @@ return 0
 ########################################################################
 
 function hvm_vms_shutdown { # Arrêter les VMs
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 _hv_status || ABORT "not allowed while libvirt is stopped"
@@ -920,11 +861,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vms_poweroff { # Couper les VMs
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 _hv_status || ABORT "not allowed while libvirt is stopped"
@@ -940,8 +877,6 @@ return 0
 ########################################################################
 
 function hvm_vms_backup { # Sauvegarder l'état des VMs
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 _hv_status || ABORT "not allowed while libvirt is stopped"
@@ -954,11 +889,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vms_restore { # Restaurer l'état des VMs sauvegardées
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 _hv_status || ABORT "not allowed while libvirt is stopped"
@@ -973,9 +904,7 @@ return 0
 
 ########################################################################
 
-function hvm_vms_list_all { # Liste des toutes les VMs
-#- Pas d'argument
-#-
+function hvm_vms_list_all { # Liste de toutes les VMs
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
@@ -985,11 +914,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vms_list_running { # Liste des VMs en fonctionnement
-#- Pas d'argument
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
@@ -999,11 +924,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vms_list_freezed { # Liste des VMs figées
-#- Pas d'argument
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
@@ -1013,11 +934,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vms_list_stopped { # Liste des VMs arrêtées
-#- Pas d'argument
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
@@ -1027,11 +944,7 @@ return 0
 
 }
 
-########################################################################
-
-function hvm_vms_list_backups { # Liste des VMs sauvegardés ou avec snapshot
-#- Pas d'argument
-#-
+function hvm_vms_list_backups { # Liste des VMs sauvegardés / avec snapshot
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
@@ -1041,11 +954,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vms_list_autostart { # Liste des VMs avec démarrage automatique
-#- Pas d'argument
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
@@ -1055,11 +964,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vms_list_prio { # Liste de priorité des VMs
-#- Pas d'argument
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
@@ -1072,8 +977,6 @@ return 0
 ########################################################################
 
 function hvm_zfs_snap_list_all { # Liste de tous les snapshots ZFS
-#- Pas d'argument
-#-
 
 _zfs_snap_list_all
 
@@ -1081,11 +984,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_zfs_snap_list_dates { # Liste des timestamps de snapshots ZFS avec date
-#- Pas d'argument
-#-
 
 _zfs_snap_list_dates
 
@@ -1093,11 +992,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_zfs_snap_list_lasts { # Liste des derniers snapshots ZFS
-#- Pas d'argument
-#-
 
 _zfs_snap_list_lasts
 
@@ -1108,8 +1003,6 @@ return 0
 ########################################################################
 
 function hvm_zfs_snap_create { # Créer un snapshot ZFS
-#- Pas d'argument
-#-
 
 LOCK || ABORT "unable to acquire lock"
 
@@ -1121,11 +1014,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_zfs_snap_sync { # Synchroniser les snapshots ZFS sur l'hôte distant
-#- Pas d'argument
-#-
 
 local last_snap_loc last_snap_rem
 
@@ -1220,11 +1109,7 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_zfs_snap_createsync { # Créer et synchroniser un snapshot ZFS
-#- Pas d'argument
-#-
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
@@ -1235,11 +1120,8 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_zfs_snap_rollback { # Retour arrière sur un snapshot ZFS
 #- Arg 1 -> timestamp du snapshot
-#-
 
 LOCK || ABORT "unable to acquire lock"
 
@@ -1251,12 +1133,9 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_zfs_snap_purge { # Purge des snapshots ZFS
 #- Arg 1 -> vide: affiche seulement les snapshots à supprimer
-#-          -e  : supprime les snapshots
-#-
+#-          '-e': supprime les snapshots
 
 LOCK || ABORT "unable to acquire lock"
 
