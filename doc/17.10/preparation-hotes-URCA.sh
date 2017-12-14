@@ -285,6 +285,16 @@ net.ipv6.conf.default.disable_ipv6=1
 EOF
 fi
 
+echo
+
+########################################################################
+echo "* Mise en place configuration réseau pour libvirt / ifupdown"
+
+cp interfaces /etc/network/interfaces
+cp bond1 /etc/network/interfaces.d/
+
+echo
+
 ########################################################################
 cat<<EOF
 ** Préparation terminée ! **
