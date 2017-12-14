@@ -298,11 +298,20 @@ chattr +i /etc/network/interfaces.d/bond1
 echo
 
 ########################################################################
+echo "* Mise en place planification CRON"
+
+cp hvm-cron /etc/cron.d/hvm
+
+echo
+
+########################################################################
 cat<<EOF
 ** Préparation terminée ! **
 
-- Redémarrer le serveur
 - Lancer le script d'installation 'hvm/install.sh'
-- Configurer le fichier de configuration '/usr/local/hvm/etc/local.conf'
+- Configurer le fichier '/usr/local/hvm/etc/local.conf'
+- Configurer les VLANs via la commande 'hvm-interface-config'
+- Modifier l'adresse de destination des mails dans '/etc/cron.d/hvm'
+- Redémarrer le serveur
 
 EOF
