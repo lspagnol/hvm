@@ -27,7 +27,7 @@ return $?
 
 ########################################################################
 
-function _zfs_snap_list_all {
+function _zfs_snap_list_all { # Liste de tous les snapshots ZFS
 
 zfs list -t snapshot -H |awk '{print $1}' |egrep "^(${HVM_ZVOLS// /|})(/|@)"
 
@@ -71,7 +71,11 @@ done
 
 ########################################################################
 
-function _zfs_snap_compare {
+function _zfs_snap_compare { # Comparer les snapshots entre les deux hôtes
+#- Arg 1 => timestamp du snapshot
+#- Codes retour:
+#- 0 -> les snapshots sont identiques
+#- 1 -> les snapshots ne sont pas identiques
 
 local r
 
@@ -91,7 +95,7 @@ return ${r}
 ########################################################################
 
 function _zfs_snap_create { # Créer des snapshots ZFS
-# Arg 1 -> timestamp
+#- Arg 1 -> timestamp
 
 if [ -z "${1}" ] ; then
 	ERROR "timestamp is required"
@@ -111,7 +115,7 @@ return 0
 
 }
 
-function _zfs_snap_sync {
+function _zfs_snap_sync { # Synchroniser les snapshots ZFS sur l'hôte disant
 
 _hv_status || ABORT "snapshot sync is allowed only while libvirt is running"
 
@@ -150,7 +154,10 @@ wait
 
 }
 
-function _zfs_snap_rollback {
+########################################################################
+
+function _zfs_snap_rollback { # Restaurer les volumes ZFS à l'état d'un snapshot
+#- Arg 1 => timestamp du snapshot
 
 _kvms_status && ABORT "snapshot rollback is not allowed while qemu is running"
 _hv_status && ABORT "snapshot rollback is not allowed while libvirt is running"
@@ -174,7 +181,10 @@ done
 
 }
 
-function _zfs_snap_purge {
+function _zfs_snap_purge { # Purger les snapshots
+#- Arg1 => '-e' => exécuter la suppression
+#- Voir '/usr/local/hvm/etc/common.conf' pour les critères de suppression
+#- => variable 'HVM_SNAPSHOT_PURGE'
 
 local e now ret flts flt
 local snap snaps psnapsl psnapsr
