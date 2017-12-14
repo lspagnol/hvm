@@ -1,0 +1,8 @@
+#!/bin/bash
+
+F=/etc/network/interfaces
+
+chattr -i ${F}
+nano ${F}
+chattr +i ${F}
+
