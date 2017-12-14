@@ -534,37 +534,11 @@ echo
 
 ########################################################################
 
-function hvm_zfs_mount { # Monter les volumes ZFS de l'hyperviseur
-
-LOCK || ABORT "unable to acquire lock"
-
-_zfs_mount
-
-UNLOCK
-
-}
-
-function hvm_zfs_umount { # Démonter les volumes ZFS de l'hyperviseur
-
-LOCK || ABORT "unable to acquire lock"
-_hv_status && ABORT "not allowed while libvirt is running"
-_kvms_status && ABORT "not allowed while VMs are running"
-
-_zfs_umount
-
-UNLOCK
-
-}
-
-########################################################################
-
 function hvm_hv_status { # Etat de l'hyperviseur (libvirt)
 
 _hv_status -v
 
 }
-
-########################################################################
 
 function hvm_hv_start { # Démarrer l'hyperviseur
 
@@ -644,8 +618,6 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vm_start { # Démarrer une VM
 #- Arg 1 -> nom VM
 
@@ -665,8 +637,6 @@ UNLOCK
 return 0
 
 }
-
-########################################################################
 
 function hvm_vm_freeze { # Figer une VMs
 #- Arg 1 -> nom VM
@@ -705,8 +675,6 @@ UNLOCK
 return 0
 
 }
-
-########################################################################
 
 function hvm_vm_shutdown { # Arrêt d'une VM
 #- Arg 1 -> nom VM
@@ -749,8 +717,6 @@ UNLOCK
 return 0
 
 }
-
-########################################################################
 
 function hvm_vm_backup { # Sauvegarder l'état d'une VM
 #- Arg 1 -> nom VM
@@ -808,8 +774,6 @@ return 0
 
 }
 
-########################################################################
-
 function hvm_vms_start { # Démarrer les VMs dont le démarrage automatique est activé
 
 LOCK || ABORT "unable to acquire lock"
@@ -822,8 +786,6 @@ UNLOCK
 return 0
 
 }
-
-########################################################################
 
 function hvm_vms_freeze { # Figer toutes les VMs
 
@@ -851,9 +813,6 @@ return 0
 
 }
 
-
-########################################################################
-
 function hvm_vms_shutdown { # Arrêter les VMs
 
 LOCK || ABORT "unable to acquire lock"
@@ -879,8 +838,6 @@ UNLOCK
 return 0
 
 }
-
-########################################################################
 
 function hvm_vms_backup { # Sauvegarder l'état des VMs
 
@@ -977,6 +934,30 @@ _hv_status || ABORT "not allowed while libvirt is stopped"
 _kvms_list_prio |sort -n
 
 return 0
+
+}
+
+########################################################################
+
+function hvm_zfs_mount { # Monter les volumes ZFS de l'hyperviseur
+
+LOCK || ABORT "unable to acquire lock"
+
+_zfs_mount
+
+UNLOCK
+
+}
+
+function hvm_zfs_umount { # Démonter les volumes ZFS de l'hyperviseur
+
+LOCK || ABORT "unable to acquire lock"
+_hv_status && ABORT "not allowed while libvirt is running"
+_kvms_status && ABORT "not allowed while VMs are running"
+
+_zfs_umount
+
+UNLOCK
 
 }
 
