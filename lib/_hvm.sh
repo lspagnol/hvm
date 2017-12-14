@@ -14,6 +14,85 @@ _kvms_status -v
 
 ########################################################################
 
+function hvm_constraint_show { # Afficher la contrainte d'hébergement des VMs
+
+local c
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+
+if [ -f ${HVM_TMP_DIR}/constraint ] ; then
+	c=$(<${HVM_TMP_DIR}/constraint)
+	c=(${c})
+	echo "${c[0]} $(date -d @${c[1]} +%d/%m/%Y) $(date -d @${c[2]} +%d/%m/%Y)"
+fi
+
+return 0
+
+}
+
+function hvm_constraint_set { # Paramétrer la contrainte d'hébergement des VMs
+#- Arg 1 -> nom de l'hôte
+#- Arg 2 -> today | tomorow | date début (J/M/AAAA)
+#- Arg 3 -> date fin optionnelle ((J/M/AAAA)
+
+local d0 d1
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+
+echo " ${HVM_HOSTS[@]} " |grep -q " ${1} "
+[ $? -eq 0 ] || ABORT "hostname must be '${node_loc}' or '${node_rem}'"
+
+case ${2} in
+	today)
+		d0=$(date -d today "+%d/%m/%Y")
+	;;
+	tomorrow)
+		d0=$(date -d tomorrow "+%d/%m/%Y")
+	;;
+	*)
+		d0=${2}
+	;;
+esac
+
+d0=$(dateconv ${d0})
+d0=$(date -d ${d0} "+%s")
+
+if [ -z "${3}" ] ; then
+	# Pas de date de fin -> prendre date de début
+	d1=${d0}
+else
+	# Convertir la date passée en argument
+	d1=$(dateconv ${3})
+	d1=$(date -d ${d1} "+%s")
+fi
+# Ajouter 24h - 1 seconde
+d1=$(( ${d1} + 86399 ))
+
+# Enregister la contraine
+echo "${1} ${d0} ${d1}" > ${HVM_TMP_DIR}/constraint
+
+hvm_constraint_show
+
+return 0
+
+}
+
+function hvm_constraint_unset { # Annuler la contrainte d'hébergement des VMs
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+
+if [ -f ${HVM_TMP_DIR}/constraint ] ; then
+	rm ${HVM_TMP_DIR}/constraint
+fi
+
+hvm_constraint_show
+
+return 0
+
+}
+
+########################################################################
+
 function hvm_backup { # Cycle de sauvegarde complet des VMs (backup + snap ZFS + sync ZFS)
 
 local t0 t1 t2 t3
@@ -128,85 +207,6 @@ t3=$(date +%s)
 echo "* Backup done in $(( ${t3} - ${t0})) seconds"
 echo "* VMs unavailable for $(( ${t2} - ${t1} )) seconds"
 echo
-
-}
-
-########################################################################
-
-function hvm_constraint_show { # Afficher la contrainte d'hébergement des VMs
-
-local c
-
-_hv_status || ABORT "not allowed while libvirt is stopped"
-
-if [ -f ${HVM_TMP_DIR}/constraint ] ; then
-	c=$(<${HVM_TMP_DIR}/constraint)
-	c=(${c})
-	echo "${c[0]} $(date -d @${c[1]} +%d/%m/%Y) $(date -d @${c[2]} +%d/%m/%Y)"
-fi
-
-return 0
-
-}
-
-function hvm_constraint_set { # Paramétrer la contrainte d'hébergement des VMs
-#- Arg 1 -> nom de l'hôte
-#- Arg 2 -> today | tomorow | date début (J/M/AAAA)
-#- Arg 3 -> date fin optionnelle ((J/M/AAAA)
-
-local d0 d1
-
-_hv_status || ABORT "not allowed while libvirt is stopped"
-
-echo " ${HVM_HOSTS[@]} " |grep -q " ${1} "
-[ $? -eq 0 ] || ABORT "hostname must be '${node_loc}' or '${node_rem}'"
-
-case ${2} in
-	today)
-		d0=$(date -d today "+%d/%m/%Y")
-	;;
-	tomorrow)
-		d0=$(date -d tomorrow "+%d/%m/%Y")
-	;;
-	*)
-		d0=${2}
-	;;
-esac
-
-d0=$(dateconv ${d0})
-d0=$(date -d ${d0} "+%s")
-
-if [ -z "${3}" ] ; then
-	# Pas de date de fin -> prendre date de début
-	d1=${d0}
-else
-	# Convertir la date passée en argument
-	d1=$(dateconv ${3})
-	d1=$(date -d ${d1} "+%s")
-fi
-# Ajouter 24h - 1 seconde
-d1=$(( ${d1} + 86399 ))
-
-# Enregister la contraine
-echo "${1} ${d0} ${d1}" > ${HVM_TMP_DIR}/constraint
-
-hvm_constraint_show
-
-return 0
-
-}
-
-function hvm_constraint_unset { # Annuler la contrainte d'hébergement des VMs
-
-_hv_status || ABORT "not allowed while libvirt is stopped"
-
-if [ -f ${HVM_TMP_DIR}/constraint ] ; then
-	rm ${HVM_TMP_DIR}/constraint
-fi
-
-hvm_constraint_show
-
-return 0
 
 }
 
@@ -595,6 +595,12 @@ UNLOCK
 }
 
 ########################################################################
+
+function hvm_hv_sharedIP_status { # Afficher l'état de l'adresse IP partagée
+
+_hv_sharedIP_status -v
+
+}
 
 function hvm_hv_sharedIP_enable { # Activer l'adresse IP partagée
 
