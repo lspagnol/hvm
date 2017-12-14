@@ -24,7 +24,9 @@ find /usr/local/hvm/sbin/ -type f -exec chmod -R 640 {} \;
 chmod 750 /usr/local/hvm/sbin/hvm
 chmod 750 /usr/local/hvm/sbin/hvm-cron
 chmod 750 /usr/local/hvm/sbin/hvmd
+chmod 750 /usr/local/hvm/sbin/hvm-interface-config
 ln -fs /usr/local/hvm/sbin/hvm /usr/local/sbin
+ln -fs /usr/local/hvm/sbin/hvm-interface-config /usr/local/sbin/
 
 cp init/hvmd /etc/init.d
 chmod 750 /etc/init.d/hvmd
