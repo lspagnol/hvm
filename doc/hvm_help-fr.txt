@@ -151,11 +151,6 @@ VMs are stopped
   => utiliser le script 'hvm-interface-config' pour ajouter / supprimer
      des VLANs
 
-* Tâches planifiées
-  => ajouter à la CRONTAB (modifer l'adresse de destination):
-45 12	* * *	root	/usr/local/hvm/sbin/hvm zfs snap createsync
-00 22   * * *   root    /usr/local/hvm/sbin/hvm-cron |s-nail -S "smtp=smtp://localhost" -s "hvm-cron" KVM-ADMIN@DOMAINE
-
 ******************************** NOTES *********************************
 
 * Le démarrage automatique natif des VMs est systématiquement neutralisé
