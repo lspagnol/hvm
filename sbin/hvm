@@ -71,6 +71,9 @@ case ${1} in
 			sharedIP)
 				shift
 				case ${1} in
+					status)
+						hvm_hv_sharedIP_status
+					;;
 					enable)
 						hvm_hv_sharedIP_enable
 					;;
@@ -78,7 +81,7 @@ case ${1} in
 						hvm_hv_sharedIP_disable
 					;;
 					*)
-						echo "Usage: hvm hv sharedIP enable|disable"
+						echo "Usage: hvm hv sharedIP status|enable|disable"
 						exit 0
 					;;
 				esac
