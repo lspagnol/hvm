@@ -366,7 +366,7 @@ function hvm_migrate_secure { # Migration "sécurisée" des VMs
 #- Pas d'argument
 #-
 
-local t0 t1 t2 t3
+local t0 t1 t2 t3 t4
 local last_snap_loc last_snap_rem
 
 WARNING "DOT NOT use virt-manager while operation is in progress !!"
@@ -429,7 +429,9 @@ echo "* Rollback storage on remote host"
 ssh ${node_rem} "hvm func _zfs_snap_rollback ${last_snap_loc}"
 echo
 
-echo "* Create recursive ZFS snapshots (stage 1/2)"
+# 1ère synchro ZFS (à chaud)
+
+echo "* Create recursive ZFS snapshots (stage 1/3)"
 _zfs_snap_create ${t0}
 echo
 
@@ -437,7 +439,7 @@ echo -n "* Last local snapshot is '${t0} - "
 date -d @${t0} +"%d/%m/%Y %T (%a)'"
 echo
 
-echo "* Sync ZFS snapshots on remote host (stage 1/2)"
+echo "* Sync ZFS snapshots on remote host (stage 1/3)"
 _zfs_snap_sync
 echo
 
@@ -450,18 +452,11 @@ if [ $? -ne 0 ] ; then
 fi
 echo
 
-# Timestamp suspension VMs
 t1=$(date +%s)
 
-echo "* Disable VMs autostart on local host"
-_kvms_disable_libvirt_autostart
-echo
+# 2ème synchro ZFS (à chaud)
 
-echo "* Backup VMs state"
-_kvms_backup ${t1}
-echo
-
-echo "* Create recursive ZFS snapshots (stage 2/2)"
+echo "* Create recursive ZFS snapshots (stage 2/3)"
 _zfs_snap_create ${t1}
 echo
 
@@ -469,7 +464,7 @@ echo -n "* Last local snapshot is '${t1} - "
 date -d @${t1} +"%d/%m/%Y %T (%a)'"
 echo
 
-echo "* Sync ZFS snapshots on remote host (stage 2/2)"
+echo "* Sync ZFS snapshots on remote host (stage 2/3)"
 _zfs_snap_sync
 echo
 
@@ -479,6 +474,40 @@ _zfs_snap_compare ${t1}
 if [ $? -ne 0 ] ; then
 	UNLOCK_REMOTE
 	ABORT "zfs snapshots '${t1}' are not available on remote host"
+fi
+echo
+
+echo "* Disable VMs autostart on local host"
+_kvms_disable_libvirt_autostart
+echo
+
+# Timestamp suspension VMs
+t2=$(date +%s)
+
+echo "* Backup VMs state"
+_kvms_backup ${t2}
+echo
+
+# 3ème synchro ZFS (à froid)
+
+echo "* Create recursive ZFS snapshots (stage 3/3)"
+_zfs_snap_create ${t2}
+echo
+
+echo -n "* Last local snapshot is '${t2} - "
+date -d @${t2} +"%d/%m/%Y %T (%a)'"
+echo
+
+echo "* Sync ZFS snapshots on remote host (stage 3/3)"
+_zfs_snap_sync
+echo
+
+# Vérifier si les snapshots associés sont identiques sur les deux machines
+echo "* Compare snapshots '${t2}' between hosts"
+_zfs_snap_compare ${t2}
+if [ $? -ne 0 ] ; then
+	UNLOCK_REMOTE
+	ABORT "zfs snapshots '${t2}' are not available on remote host"
 fi
 echo
 
@@ -499,7 +528,7 @@ ssh ${node_rem} "hvm func _kvms_restore"
 echo
 
 # Timestamp reprise VMs
-t2=$(date +%s)
+t3=$(date +%s)
 
 echo "* Enable shared IP on remote host"
 ssh ${node_rem} "hvm func _hv_sharedIP_enable"
@@ -510,10 +539,10 @@ UNLOCK_REMOTE
 UNLOCK
 
 # Timestamp fin
-t3=$(date +%s)
+t4=$(date +%s)
 
-echo "* Migrate done in $(( ${t3} - ${t0})) seconds"
-echo "* VMs unavailable for $(( ${t2} - ${t1} )) seconds"
+echo "* Migrate done in $(( ${t4} - ${t0})) seconds"
+echo "* VMs unavailable for $(( ${t3} - ${t2} )) seconds"
 echo
 
 }
