@@ -292,6 +292,8 @@ echo "* Mise en place configuration réseau pour libvirt / ifupdown"
 
 cp interfaces /etc/network/interfaces
 cp bond1 /etc/network/interfaces.d/
+chattr +i /etc/network/interfaces
+chattr +i /etc/network/interfaces.d/bond1
 
 echo
 
