@@ -5,9 +5,10 @@
 ########################################################################
 
 function _hv_status { # Récupérer / afficher état de libvirt
-#- si '-v' passé en argument => afficher état
-#- return 0 si actif, sinon return 1
-#-
+#- Arg 1 => '-v' => afficher état
+#- Codes retour:
+#- 0 -> libvirt fonctionne
+#- 1 -> libvirt est arrêté
 
 [ "${1}" = "-v" ] && echo -n "Hypervisor is "
 
@@ -28,8 +29,6 @@ fi
 }
 
 function _hv_start { # Démarrer libvirt
-#- return 0
-#-
 
 _hv_status && ABORT "libvirt is already running"
 
@@ -52,8 +51,6 @@ return 0
 }
 
 function _hv_stop { # Arrêter libvirt
-#- return 0
-#-
 
 _hv_status || ABORT "libvirt is already stopped"
 
@@ -66,6 +63,9 @@ fi
 service virtlockd stop
 service virtlogd stop
 
+# Neutraliser le démarrage automatique natif des VMs/libvirt
+rm ${KVM_LIBVIRT_ETC_DIR}/qemu/autostart/*.xml 2>/dev/null
+
 source ${HVM_BASE}/etc/hv_post-stop.sh
 
 return 0
@@ -73,9 +73,10 @@ return 0
 }
 
 function _hv_sharedIP_status { # Etat de l'adresse IP partagée sur l'hôte local
-#- si '-v' passé en argument => afficher état
-#- return 0 si actif, sinon return 1
-#-
+#- Arg 1 => '-v' => afficher état
+#- Codes retour:
+#- 0 -> l'adresse partagée est activée
+#- 1 -> l'adresse partagée n'est pas activée
 
 [ "${1}" = "-v" ] && echo -n "Shared IP is "
 ip address |grep -q "inet ${HVM_SHARED_IP//./\\.}/"
@@ -91,8 +92,6 @@ fi
 }
 
 function _hv_sharedIP_enable { # Activer l'adresse IP partagée de l'hyperviseur
-#- return 0
-#-
 
 # Vérifier si l'adresse IP partagée est utilisée
 ping -q -c 2 -W 1 ${HVM_SHARED_IP} 2>/dev/null >/dev/null && ABORT "shared IP is already in use"
@@ -112,8 +111,6 @@ return 0
 }
 
 function _hv_sharedIP_disable { # Désactiver l'adresse IP partagée de l'hyperviseur
-#- return 0
-#-
 
 # Supprimer l'adresse IP partagée
 ip address del ${HVM_SHARED_IP}/24 dev ${HVM_SERVICE_IFACE} 2>/dev/null
