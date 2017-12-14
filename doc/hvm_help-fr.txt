@@ -192,6 +192,7 @@ VMs are stopped
 |  |--* start           Démarrer l'hyperviseur
 |  |--* stop            Arrêter l'hyperviseur
 |  |--* sharedIP        Contrôle de l'adresse IP partagée
+|  |--|--* status       Afficher l'état de l'adresse IP partagée
 |     |--* enable       Activer l'adresse IP partagée
 |     |--* disable      Désactiver l'adress IP partagée
 |
