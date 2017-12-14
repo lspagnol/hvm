@@ -126,8 +126,8 @@ VMs are stopped
 
 * Windows:
 - Installer les pilotes Virtio-win
-- Installer le "Guest Agent"
-
+- Installer "Guest Agent"
+  => https://fedoraproject.org/wiki/Windows_Virtio_Drivers
 
 * Debian, Ubuntu, Linux-Mint:
   "apt-get install qemu-guest-agent"
@@ -145,8 +145,14 @@ VMs are stopped
 - "HVM_SHARED_IP"
 - "HVM_GATEWAY"
 
+* Configuration réseau pour libvirt
+- Libvirt analyse et modifie le contenu de '/etc/network/interface'
+  => ce fichier est protégé en écriture
+  => utiliser le script 'hvm-interface-config' pour ajouter / supprimer
+     des VLANs
 
-* Tâches planifiées => ajouter à la CRONTAB:
+* Tâches planifiées
+  => ajouter à la CRONTAB (modifer l'adresse de destination):
 45 12	* * *	root	/usr/local/hvm/sbin/hvm zfs snap createsync
 00 22   * * *   root    /usr/local/hvm/sbin/hvm-cron |s-nail -S "smtp=smtp://localhost" -s "hvm-cron" KVM-ADMIN@DOMAINE
 
