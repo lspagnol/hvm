@@ -93,7 +93,7 @@ return 0
 
 ########################################################################
 
-function hvm_backup { # Cycle de sauvegarde complet des VMs
+function hvm_backup { # # Cycle de sauvegarde des VMs (secure ou unsecure + opérations ZFS)
 # Arg 1 -> '-u': figer les VMs au lieu de les sauvegarder
 
 local t0 t1 t2 t3
@@ -218,6 +218,18 @@ t3=$(date +%s)
 echo "* Backup done in $(( ${t3} - ${t0})) seconds"
 echo "* VMs unavailable for $(( ${t2} - ${t1} )) seconds"
 echo
+
+}
+
+function hvm_backup_secure { #  Cycle de sauvegarde complet des VMs (backup/snap ZFS/restore/sync ZFS)
+
+hvm_backup
+
+}
+
+function hvm_backup_unsecure { # Cycle de sauvegarde parteil des VMs (freeze/snap ZFS/unfreeze/sync ZFS)
+
+hvm_backup -u
 
 }
 
