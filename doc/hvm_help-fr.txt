@@ -30,10 +30,10 @@ VMs are stopped
 
 ******************* Opérations courantes (hôte ACTIF) ******************
 
-* Cycle complet de sauvegarde de l'état des VMs:
+* Cycle complet de sauvegarde de l'état CONSISTANT des VMs:
 - Sauvegarde VMs -> snapshot ZFS -> restauration VMs -> synchro ZFS
 
-  -> "hvm backup"
+  -> "hvm backup secure"
 
 
 * Migration "sécurisée" des VMs:
