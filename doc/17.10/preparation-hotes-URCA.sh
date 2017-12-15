@@ -247,10 +247,10 @@ virsh pool-autostart ISO
 echo
 
 ########################################################################
-echo "* Limiter la quantité de RAM utilisée par ARC/ZFS à 16 Go"
+echo "* Limiter la quantité de RAM utilisée par ARC/ZFS à 32 Go"
 
 cat<<EOF>/etc/modprobe.d/zfs.conf
-options zfs zfs_arc_max=$((16 * 1024 * 1024 * 1024))
+options zfs zfs_arc_max=$((32 * 1024 * 1024 * 1024))
 EOF
 
 echo
@@ -301,6 +301,13 @@ echo
 echo "* Mise en place planification CRON"
 
 cp hvm-cron /etc/cron.d/hvm
+
+echo
+
+########################################################################
+echo "* Verrouillage du dossier images par défaut de libvirt"
+
+chattr +i /var/lib/libvirt/images
 
 echo
 
