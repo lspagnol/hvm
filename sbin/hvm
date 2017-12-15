@@ -308,7 +308,7 @@ case ${1} in
 	;;
 
 	*)
-		echo "Usage: hvm status|constraint|hv|vm|vms|backup|migrate|zfs|help"
+		echo "Usage: hvm status|backup|migrate|constraint|hv|vm|vms|zfs|help"
 		exit 0
 	;;
 
