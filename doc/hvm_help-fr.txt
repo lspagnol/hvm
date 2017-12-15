@@ -177,6 +177,14 @@ VMs are stopped
 * hvm 
 |--* status             Etat de l'hyperviseur (hv, sharedIP, vms)
 |
+|--* backup             Cycle de synchro des VMs sur l'hôte distant
+|  |--* secure          Avec sauvegarde de l'état des VMs (consistant)
+|  |--* unsecure        Sans sauvegarde de l'état des VMs (VMs figées)
+|
+|--* migrate            Migrer les VMs (bascule ACTIF/PASSIF des hôtes)
+|  |--* secure          Migration avec interruption longue des VMs
+|  |--* unsecure        Migration avec interruption courte des VMs
+|
 |--* constraint         Contrainte d'hébergement de l'hyperviseur
 |  |--* show            Afficher la contrainte
 |  |--* set             Fixer la contrainte
@@ -218,13 +226,6 @@ VMs are stopped
 |  |--* unfreeze        Reprise des VMs figées
 |  |--* shutdown        Arrêter les VMs
 |  |--* poweroff        Couper l'alimentation des VMs
-|
-|
-|--* backup             Cycle de sauvegarde/synchro complet des VMs
-|
-|--* migrate            Migrer les VMs (bascule ACTIF/PASSIF des hôtes)
-|  |--* secure          Migration avec interruption longue des VMs
-|  |--* unsecure        Migration avec interruption courte des VMs
 |
 |--* zfs                Contrôle des volumes ZFS
 |  |--* snap            Contrôle des snapshots ZFS
