@@ -25,13 +25,18 @@ fi
 function cron_backup {
 
 echo "BEGIN   : local host is '${node_loc}', backup to remote host '${node_rem}' **"
-_hv_status || ABORT "not allowed while libvirt is stopped"
 echo
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+
 hvm_backup_secure
+
 echo "* Purge snapshots on local host"
 hvm_zfs_snap_purge -e
+
 echo "* Purge snapshots on remote host"
 ssh ${node_rem} "hvm zfs snap purge -exec"
+
 echo "END     : backup done"
 echo
 
@@ -40,9 +45,12 @@ echo
 function cron_migrate {
 
 echo "BEGIN   : local host is '${node_loc}', migration to remote host '${node_rem}' **"
-_hv_status || ABORT "not allowed while libvirt is stopped"
 echo
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+
 hvm_migrate_secure
+
 echo "END     : active host is now '${node_rem}'"
 echo
 
