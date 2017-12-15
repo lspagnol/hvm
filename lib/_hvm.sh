@@ -93,7 +93,8 @@ return 0
 
 ########################################################################
 
-function hvm_backup { # Cycle de sauvegarde complet des VMs (backup + snap ZFS + sync ZFS)
+function hvm_backup { # Cycle de sauvegarde complet des VMs
+# Arg 1 -> '-u': figer les VMs au lieu de les sauvegarder
 
 local t0 t1 t2 t3
 local last_snap_loc last_snap_rem
@@ -121,8 +122,13 @@ echo "* Disable VMs autostart"
 _kvms_disable_libvirt_autostart
 echo
 
-echo "* Backup VMs state"
-_kvms_backup ${t1}
+if [ "${1}" = "-u" ] ; then
+	echo "* Freeze VMs"
+	_kvms_freeze
+else
+	echo "* Backup VMs state"
+	_kvms_backup ${t1}
+fi
 echo
 
 echo "* Create recursive ZFS snapshots"
@@ -133,8 +139,13 @@ echo -n "* Last local snapshot is '${t1} - "
 date -d @${t1} +"%d/%m/%Y %T (%a)'"
 echo
 
-echo "* Restore VMs state"
-_kvms_restore
+if [ "${1}" = "-u" ] ; then
+	echo "* Unfreeze VMs"
+	_kvms_unfreeze
+else
+	echo "* Restore VMs state"
+	_kvms_restore
+fi
 echo
 
 # Timestamp reprise VMs
@@ -353,6 +364,7 @@ function hvm_migrate_secure { # Migration "sécurisée" des VMs
 
 local t0 t1 t2 t3 t4
 local last_snap_loc last_snap_rem
+local zvol
 
 WARNING "DOT NOT use virt-manager while operation is in progress !!"
 echo
@@ -517,6 +529,24 @@ t3=$(date +%s)
 
 echo "* Enable shared IP on remote host"
 ssh ${node_rem} "hvm func _hv_sharedIP_enable"
+echo
+
+echo "* Remove useless snapshots"
+for zvol in ${HVM_ZVOLS} ; do
+
+	echo -n "Snapshots 1/3 '${zvol}@${t0}':"
+	echo -n " remote"
+	ssh ${node_rem} zfs destroy -r ${zvol}@${t0}
+	echo " local"
+	zfs destroy -r ${zvol}@${t0}
+
+	echo -n "Snapshots 2/3 '${zvol}@${t1}':"
+	echo -n " remote"
+	ssh ${node_rem} zfs destroy -r ${zvol}@${t1}
+	echo " local"
+	zfs destroy -r ${zvol}@${t1}
+
+done
 echo
 
 # Déverrouiller hôte local et distant
