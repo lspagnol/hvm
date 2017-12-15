@@ -29,7 +29,18 @@ case ${1} in
 	;;
 
 	backup)
-		hvm_backup
+		shift
+		case ${1} in
+			secure)
+				hvm_backup_secure
+			;;
+			unsecure)
+				hvm_backup_unsecure
+			;;
+			*)
+				echo "Usage: hvm backup secure|unsecure"
+			;;
+		esac
 	;;
 
 	constraint)
@@ -41,7 +52,7 @@ case ${1} in
 			set)
 				shift
 				if [ -z "${2}" ] || [ -z "${1}" ] ; then
-					echo "Usage hvm constraint set HOST today|tomorrow|DATE [DATE]"
+					echo "Usage: hvm constraint set HOST today|tomorrow|DATE [DATE]"
 					exit 0
 				fi
 				hvm_constraint_set ${1} ${2} ${3}
@@ -50,7 +61,7 @@ case ${1} in
 				hvm_constraint_unset
 			;;
 			*)
-				echo "Usage hvm constraint show|set|unset"
+				echo "Usage: hvm constraint show|set|unset"
 				exit 0
 			;;
 		esac
