@@ -132,7 +132,6 @@ for vm in ${vms} ; do
 	_kvm_is_running ${vm}
 	if [ $? -eq 0 ] ; then
 		_kvm_freeze ${vm}
-		sleep 1
 	fi
 
 done
@@ -152,7 +151,6 @@ for vm in ${vms} ; do
 	_kvm_is_freezed ${vm}
 	if [ $? -eq 0 ] ; then
 		_kvm_unfreeze ${vm}
-		sleep 1
 	fi
 
 done
