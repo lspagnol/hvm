@@ -27,7 +27,7 @@ function cron_backup {
 echo "BEGIN   : local host is '${node_loc}', backup to remote host '${node_rem}' **"
 _hv_status || ABORT "not allowed while libvirt is stopped"
 echo
-hvm_backup
+hvm_backup_secure
 echo "* Purge snapshots on local host"
 hvm_zfs_snap_purge -e
 echo "* Purge snapshots on remote host"
