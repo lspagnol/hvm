@@ -3,5 +3,5 @@
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/hvm/sbin
 
-45 12   * * *   root    hvm zfs snap createsync
+45 12   * * *   root    hvm backup unsecure
 00 22   * * *   root    hvm-cron |s-nail -S "smtp=smtp://localhost" -s "hvm-cron" kvm-admin@domain.tld
