@@ -37,12 +37,6 @@ source ${HVM_BASE}/etc/hv_pre-start.sh
 # Neutraliser le démarrage automatique natif des VMs/libvirt
 rm ${KVM_LIBVIRT_ETC_DIR}/qemu/autostart/*.xml 2>/dev/null
 
-# Indiquer le nom de l'hyperviseur actif dans le pool de stockage par défaut
-chattr -i ${KVM_LIBVIRT_VARLIB_DIR}/images
-rm ${KVM_LIBVIRT_VARLIB_DIR}/images/HOST:* 2>/dev/null
-touch "${KVM_LIBVIRT_VARLIB_DIR}/images/HOST:${HOSTNAME}"
-chattr +i ${KVM_LIBVIRT_VARLIB_DIR}/images
-
 # Démarrage libvirt
 service virtlogd start
 service virtlockd start
