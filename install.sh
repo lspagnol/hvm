@@ -15,6 +15,8 @@ find /usr/local/hvm/etc/ -type d -exec chmod -R 750 {} \;
 find /usr/local/hvm/etc/ -type f -exec chmod -R 640 {} \;
 cp /usr/local/hvm/etc/common.conf.dist /usr/local/hvm/etc/common.conf
 [ -f /usr/local/hvm/etc/local.conf ] || cp /usr/local/hvm/etc/local.conf.dist /usr/local/hvm/etc/local.conf
+[ -f /usr/local/hvm/etc/hv_pre-start.sh ] || cp /usr/local/hvm/etc/hv_pre-start.sh.dist /usr/local/hvm/etc/hv_pre-start.sh
+[ -f /usr/local/hvm/etc/hv_post-stop.sh ] || /usr/local/hvm/etc/hv_post-stop.sh.dist /usr/local/hvm/etc/hv_post-stop.sh
 
 mkdir -p /usr/local/hvm/sbin/
 cp sbin/* /usr/local/hvm/sbin/
