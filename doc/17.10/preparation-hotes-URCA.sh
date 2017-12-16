@@ -47,7 +47,7 @@ apt-get -y upgrade linux-generic
 DEBIAN_FRONTEND=noninteractive apt-get -y install postfix
 postconf -e relayhost=smtp.univ-reims.fr
 service postfix restart
-apt-get -y install zfsutils-linux joe htop arping mbuffer liblz4-tool smartmontools s-nail
+apt-get -y install zfsutils-linux joe htop arping mbuffer liblz4-tool smartmontools
 apt-get -y install ifupdown ifenslave
 apt-get clean
 echo
