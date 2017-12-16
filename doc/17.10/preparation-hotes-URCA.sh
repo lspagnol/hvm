@@ -319,7 +319,6 @@ cat<<EOF
 - Lancer le script d'installation 'hvm/install.sh'
 - Configurer le fichier '/usr/local/hvm/etc/local.conf'
 - Configurer les VLANs via la commande 'hvm-interface-config'
-- Modifier l'adresse de destination des mails dans '/etc/cron.d/hvm'
 - Redémarrer le serveur
 
 EOF
