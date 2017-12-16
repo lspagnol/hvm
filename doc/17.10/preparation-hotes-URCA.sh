@@ -300,7 +300,7 @@ echo
 ########################################################################
 echo "* Mise en place planification CRON"
 
-cp hvm-cron /etc/cron.d/hvm
+sed "s/^MAILTO=kvm-admin@domain.tld/MAILTO=kvm-admin-$(hostname |cut -d- -f2)@univ-reims.fr/g" < hvm-cron > /etc/cron.d/hvm
 
 echo
 
