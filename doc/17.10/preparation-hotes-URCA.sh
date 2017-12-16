@@ -307,6 +307,7 @@ echo
 ########################################################################
 echo "* Verrouillage du dossier images par défaut de libvirt"
 
+touch /var/lib/libvirt/images/DUMMY
 chattr +i /var/lib/libvirt/images
 
 echo
