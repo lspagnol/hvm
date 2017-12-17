@@ -8,6 +8,8 @@
 # SSH non bloquant
 alias ssh='ssh -o "NumberOfPasswordPrompts 0" -o "StrictHostKeyChecking yes" -o "Compression no"'
 
+########################################################################
+
 # Libvirt: répertoires système
 KVM_LIBVIRT_ETC_DIR="/etc/libvirt"
 KVM_LIBVIRT_VARLIB_DIR="/var/lib/libvirt"
