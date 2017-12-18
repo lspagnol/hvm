@@ -5,6 +5,6 @@ _zfs_mount
 
 # Indiquer le nom de l'hyperviseur actif dans le pool de stockage par défaut
 chattr -i ${KVM_LIBVIRT_VARLIB_DIR}/images
-[ -f ${KVM_LIBVIRT_VARLIB_DIR}/${node_rem} ] && rm ${KVM_LIBVIRT_VARLIB_DIR}/${node_rem}
+[ -f ${KVM_LIBVIRT_VARLIB_DIR}/images/${node_rem} ] && rm ${KVM_LIBVIRT_VARLIB_DIR}/images/${node_rem}
 touch ${KVM_LIBVIRT_VARLIB_DIR}/images/${node_loc}
 chattr +i ${KVM_LIBVIRT_VARLIB_DIR}/images
