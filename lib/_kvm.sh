@@ -459,7 +459,7 @@ if [ $? -ne 0 ] ; then
 	virsh attach-device ${1} --persistent --file ${HVM_LOCK_DIR}/qemu-ga_${1}.xml |grep -v '^$' 2>/dev/null >/dev/null
 
 	if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-		WARNING "'virsh attach-device' has failed for VM '${1}'"
+		ERROR "'virsh attach-device' has failed for VM '${1}'"
 	fi
 
 	rm ${HVM_LOCK_DIR}/qemu-ga_${1}.xml
@@ -483,7 +483,7 @@ sleep 1
 virsh domtime --now ${1} 2>/dev/null >/dev/null
 
 if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-	WARNING "'virsh domtime' has failed for VM '${1}'"
+	ERROR "'virsh domtime' has failed for VM '${1}'"
 fi
 
 return 0
