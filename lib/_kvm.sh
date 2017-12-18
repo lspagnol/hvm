@@ -166,7 +166,7 @@ fi
 
 local snap
 
-_kvm_is_running ${1}
+_kvm_is_running || _kvm_is_freezed ${1}
 if [ $? -ne 0 ] ; then
 
 	_kvm_has_backup ${1}
@@ -224,7 +224,7 @@ if [ $? -ne 0 ] ; then
 
 else
 
-	ERROR "can't restore already running VM '${1}'"
+	ERROR "can't restore already running or freezed VM '${1}'"
 	return 1
 
 fi
