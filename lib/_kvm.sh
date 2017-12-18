@@ -166,7 +166,7 @@ fi
 
 local snap
 
-_kvm_is_running || _kvm_is_freezed ${1}
+_kvm_is_running ${1} || _kvm_is_freezed ${1}
 if [ $? -ne 0 ] ; then
 
 	_kvm_has_backup ${1}
