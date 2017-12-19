@@ -28,10 +28,17 @@ VMs are stopped
   -> "hvm vms list all"
 
 
+* Afficher la liste des snapshots ZFS. Ceux qui portent la mention "B"
+  juste après le timestamp contiennent une sauvegarde "consistante" de
+  l'état des VMs.
+
+  -> "hvm zfs snap list dates"
+  
+
 ******************* Opérations courantes (hôte ACTIF) ******************
 
 * Cycle complet de sauvegarde de l'état CONSISTANT des VMs:
-- Sauvegarde VMs -> snapshot ZFS -> restauration VMs -> synchro ZFS
+- Sauvegarde VMs > snapshot ZFS > restauration VMs > synchro ZFS
 
   -> "hvm backup secure"
 
@@ -39,21 +46,10 @@ VMs are stopped
 * Migration "sécurisée" des VMs:
 - Fonctionne dans tous les cas
 - Interruption "longue" des VMs
-- Snapshot ZFS -> synchro ZFS -> sauvegarde VMs -> snapshot ZFS
-  -> synchro ZFS -> restauration VMs -> bascule hôtes
+- Snapshot ZFS > synchro ZFS > sauvegarde VMs > snapshot ZFS
+  > synchro ZFS > restauration VMs > bascule hôtes
 
   -> "hvm migrate secure"
-
-
-* Migration "non sécurisée" des VMs:
-- **NE FONCTIONNE PAS** si une VM a des snapshots libvirt/Qemu
-- **NE FONCTIONNE PAS** si une VM est figée
-- **AVERTISSEMENT** bug libvirt 1.3.1, certaines VMs ne redémarrent pas
-  toujours correctement ... donc utilisation non recommandée
-- Interruption "courte" des VMs
-- Snapshot ZFS -> synchro ZFS -> migration individuelle -> bascule hôtes
-
-  -> "hvm migrate unsecure"
 
 
 * Fixer une contrainte d'hébergement de l'hyperviseur:
@@ -64,15 +60,18 @@ VMs are stopped
 - Elle permet d'éviter les migrations (suspension de service) au cours
   de la journée pour, par exemple, libérer un hôte (maintenance)
 
-  S'assurer que l'hôte "HOST-xx" sera actif aujourd'hui
+  Vérifier s'il une contrainte est fixée:
+  -> "hvm constraint show"
+
+  S'assurer que l'hôte "HOST-xx" sera actif aujourd'hui:
   -> "hvm constraint set HOST-xx today"
 
-  S'assurer que l'hôte "HOST-xx" sera actif demain
+  S'assurer que l'hôte "HOST-xx" sera actif demain:
   -> "hvm constraint set HOST-xx tomorrow"
 
   S'assurer que l'hôte "HOST-xx" sera actif du 20/12/2017 au 3/1/2018
   inclus
-  -> "hvm constraint set HOST-xx 20/12/2017 3/1/2018"
+  -> "hvm constraint set HOST-xx 20/12/2017 3/1/2018":
 
 
 * Arrêt complet de l'hyperviseur:
@@ -94,7 +93,7 @@ VMs are stopped
 
 *************************** En cas de panne ****************************
 
-* Déterminer quel machine était l'hôte ACTIF et l'hôte passif:
+* Déterminer quel serveur était l'hôte ACTIF:
 - Consulter les logs (/var/log/syslog)
 - Consulter les mails de notification (hvm-cron)
 
@@ -105,13 +104,30 @@ VMs are stopped
 
 
 * Si les VMs sont HS / inconsistantes, il faut restaurer leur état à
-  partir de la denière sauvegarde consistante:
+  partir de la denière sauvegarde:
 - Arrêter l'hyperviseur    -> "hvm hv stop"
 - Rollback ZFS             -> "hvm zfs snap rollback lasts"
 - Démarrer l'hyperviseur   -> "hvm hv start"
 - Restaurer l'état des VMs -> "hvm vms restore"
 
 
+* Si la dernière sauvegarde n'était pas "consistante", il est possible
+  que les VMs ne démarrent pas correctement.
+  Il faut effectuer un rollback ZFS sur le dernier snapshot avec
+  sauvegarde "consistante":
+- Afficher la liste des snapshots et repérer le timestamp du dernier
+  snapshot "consistant" (mention "B" à côté du timestamp)
+  -> "hvm zfs snap list dates"
+- Arrêter l'hyperviseur
+  -> "hvm hv stop"
+- Effectuer un rollback ZFS sur ce timestamp
+  -> "hvm zfs snap rollback xxxxxxx"
+- Démarrer l'hyperviseur
+  -> "hvm hv start"
+- Restaurer l'état des VMs
+  -> "hvm vms restore"
+
+  
 * Si l'hôte ACTIF est totalement indisponible, il faut restaurer l'état
   des VMs sur l'hôte PASSIF:
 - Démarrer l'hyperviseur   -> "hvm hv start"
