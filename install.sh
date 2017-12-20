@@ -27,8 +27,12 @@ chmod 750 /usr/local/hvm/sbin/hvm
 chmod 750 /usr/local/hvm/sbin/hvm-cron
 chmod 750 /usr/local/hvm/sbin/hvmd
 chmod 750 /usr/local/hvm/sbin/hvm-interface-config
+chmod 755 /usr/local/hvm/sbin/zpool_iostat_
 ln -fs /usr/local/hvm/sbin/hvm /usr/local/sbin
 ln -fs /usr/local/hvm/sbin/hvm-interface-config /usr/local/sbin/
+ln -fs /usr/local/hvm/sbin/zpool_iostat_ /etc/munin/plugins/zpool_iostat_bytes
+ln -fs /usr/local/hvm/sbin/zpool_iostat_ /etc/munin/plugins/zpool_iostat_iops
+service munin-node restart
 
 cp init/hvmd /etc/init.d
 chmod 750 /etc/init.d/hvmd
