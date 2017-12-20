@@ -51,6 +51,19 @@ apt-get -y install zfsutils-linux joe htop arping mbuffer liblz4-tool smartmonto
 apt-get -y install ifupdown ifenslave
 apt-get -y install munin-node munin-plugins-extra munin-libvirt-plugins
 apt-get clean
+
+echo
+
+########################################################################
+echo "* Configuration Munin"
+
+munin-node-configure
+rm /etc/munin/plugins/if*_eno* 2>/dev/null
+rm /etc/munin/plugins/if*_virbr* 2>/dev/null
+rm /etc/munin/plugins/if*_vnet* 2>/dev/null
+rm /etc/munin/plugins/smart_* 2>/dev/null
+service munin-node stop ; service munin-node start
+
 echo
 
 ########################################################################
