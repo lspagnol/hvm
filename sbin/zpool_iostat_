@@ -1,0 +1,90 @@
+#!/bin/bash
+
+########################################################################
+
+m=$(basename ${0})
+ZPOOLS=$(zpool list -H |awk '{print $1}')
+
+########################################################################
+
+if [ "${1}" = "config" ] ; then
+
+cat<<EOF
+graph_category zfs
+graph_order down up
+graph_args --base 1000 -l 0
+EOF
+        case ${m} in
+                zpool_iostat_bytes)
+                        cat<<EOF
+graph_title ZFS bytes read+written
+graph_info This graph shows the bytes read+written of the ZFS pools
+graph_vlabel bytes read (-) / written (+)
+EOF
+                        for zpool in ${ZPOOLS} ; do
+                                cat<<EOF
+${zpool}_bytes_r.label ${zpool}
+${zpool}_bytes_r.type DERIVE
+${zpool}_bytes_r.min 0
+${zpool}_bytes_r.graph no
+${zpool}_bytes_w.label ${zpool}
+${zpool}_bytes_w. bytes on pool ${zpool}
+${zpool}_bytes_w.type DERIVE
+${zpool}_bytes_w.min 0
+${zpool}_bytes_w.negative ${zpool}_bytes_r
+EOF
+                        done
+                ;;
+
+                zpool_iostat_iops)
+                        cat<<EOF
+graph_title ZFS I/O read+written
+graph_info This graph shows the IOps of the ZFS pools
+graph_vlabel iops read (-) / written (+)
+EOF
+                        for zpool in ${ZPOOLS} ; do
+                                cat<<EOF
+${zpool}_io_r.label ${zpool}
+${zpool}_io_r.type DERIVE
+${zpool}_io_r.min 0
+${zpool}_io_r.graph no
+${zpool}_io_w.label ${zpool}
+${zpool}_io_w. I/O on pool ${zpool}
+${zpool}_io_w.type DERIVE
+${zpool}_io_w.min 0
+${zpool}_io_w.negative ${zpool}_io_r
+EOF
+                        done
+                ;;
+
+        esac
+
+exit
+
+fi
+
+########################################################################
+
+for zpool in ${ZPOOLS} ; do
+
+        VALUES=$(cat /proc/spl/kstat/zfs/${zpool}/io |head -n 3 |tail -1)
+        VALUES=(${VALUES})
+
+        b_r=${VALUES[0]}
+        b_w=${VALUES[1]}
+
+        io_r=${VALUES[2]}
+        io_w=${VALUES[3]}       
+
+        case ${m} in
+                zpool_iostat_bytes)
+                        echo "${zpool}_bytes_r.value ${b_r}"
+                        echo "${zpool}_bytes_w.value ${b_w}"
+                ;;
+                zpool_iostat_iops)
+                        echo "${zpool}_io_r.value ${io_r}"
+                        echo "${zpool}_io_w.value ${io_w}"
+                ;;
+        esac
+
+done
