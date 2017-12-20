@@ -49,6 +49,7 @@ postconf -e relayhost=smtp.univ-reims.fr
 service postfix restart
 apt-get -y install zfsutils-linux joe htop arping mbuffer liblz4-tool smartmontools
 apt-get -y install ifupdown ifenslave
+apt-get -y install munin-node munin-plugins-extra munin-libvirt-plugins
 apt-get clean
 echo
 
