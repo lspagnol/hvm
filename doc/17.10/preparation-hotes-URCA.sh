@@ -62,6 +62,7 @@ rm /etc/munin/plugins/if*_eno* 2>/dev/null
 rm /etc/munin/plugins/if*_virbr* 2>/dev/null
 rm /etc/munin/plugins/if*_vnet* 2>/dev/null
 rm /etc/munin/plugins/smart_* 2>/dev/null
+rm /etc/munin/plugins/postfix_* 2>/dev/null
 service munin-node stop ; service munin-node start
 
 echo
