@@ -33,10 +33,10 @@ ln -fs /usr/local/hvm/sbin/hvm-interface-config /usr/local/sbin/
 
 # Script "maison"
 chmod 755 /usr/local/hvm/sbin/zpool_iostat_
-# https://github.com/munin-monitoring/contrib/blob/master/plugins/zfs/zfs_arcstats
+# "zfs_arcstats" => https://github.com/munin-monitoring/contrib/blob/master/plugins/zfs/zfs_arcstats
 chmod 755 /usr/local/hvm/sbin/zfs_arcstats
 sed -i 's/graph_category fs/graph_category zfs/g' /usr/local/hvm/sbin/zfs_arcstats
-# https://github.com/munin-monitoring/contrib/blob/master/plugins/zfs/zpool_capacity
+# "zpool_capacity" => https://github.com/munin-monitoring/contrib/blob/master/plugins/zfs/zpool_capacity
 chmod 755 /usr/local/hvm/sbin/zpool_capacity
 sed -i 's/graph_category fs/graph_category zfs/g' /usr/local/hvm/sbin/zpool_capacity
 ln -fs /usr/local/hvm/sbin/zpool_iostat_ /etc/munin/plugins/zpool_iostat_bytes
