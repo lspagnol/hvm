@@ -233,6 +233,7 @@ VMs are stopped
 |  |  |--* freezed      Seulement les VMs figées
 |  |  |--* stopped      Seulement les VMs arrêtées
 |  |  |--* backups      Seulement les VMs avec sauvegarde
+|  |  |--* snapshots    Seulement les VMs avec snapshot(s)
 |  |  |--* autostart    Seulement les VMs avec démarrage automatique
 |  |  |--* prio         Priorité des VMs
 |  |--* start           Démarrer les VMs avec démarrage automatique
