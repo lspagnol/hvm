@@ -25,6 +25,9 @@ KVM_AUTOSTART_DIR="${KVM_LIBVIRT_ETC_DIR}/qemu/autostart"
 
 ########################################################################
 
+# HVM: désactiver la migration "unsecure" (problèmes de fiabilité)
+HVM_DISABLE_MIGRATE_UNSECURE="1"
+
 # HVM: dossier de verrouillage local
 HVM_LOCK_DIR="/tmp/hvm.lock"
 
