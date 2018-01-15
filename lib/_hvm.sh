@@ -127,7 +127,7 @@ if [ "${1}" = "-u" ] ; then
 	_kvms_freeze
 else
 	echo "* Backup VMs state"
-	_kvms_backup ${t1}
+	_kvms_backup
 fi
 echo
 
@@ -237,6 +237,10 @@ hvm_backup -u
 
 function hvm_migrate_unsecure { # Migration "rapide" des VMs
 
+if [ "${HVM_DISABLE_MIGRATE_UNSECURE}" = "1" ] ; then
+	ABORT "'migrate_unsecure' is disabled"
+fi
+
 local t0 t1
 local vms vm
 local last_snap_loc last_snap_rem
@@ -343,8 +347,7 @@ vms="$(_kvms_list_running) $(_kvms_list_freezed)"
 for vm in ${vms} ; do
 	echo "- '${vm}':"
 	virsh migrate ${vm} --verbose --live --desturi qemu+ssh://root@${node_rem}/system
-	ssh ${node_rem} "rm ${KVM_BACKUP_DIR}/${vm} 2>/dev/null"
-	sleep 1
+	ssh ${node_rem} "rm ${KVM_BACKUP_DIR}/${vm}.backup 2>/dev/null"
 done
 echo
 
@@ -494,7 +497,7 @@ echo
 t2=$(date +%s)
 
 echo "* Backup VMs state"
-_kvms_backup ${t2}
+_kvms_backup
 echo
 
 # 3ème synchro ZFS (à froid)
@@ -727,7 +730,7 @@ LOCK || ABORT "unable to acquire lock"
 
 [ -z "${1}" ] && ABORT "VM name is required"
 
-_kvm_is_running ${1}
+_kvm_is_running ${1} || _kvm_is_freezed ${1}
 if [ $? -eq 0 ] ; then
 	_kvm_shutdown ${1}
 else
@@ -771,7 +774,7 @@ LOCK || ABORT "unable to acquire lock"
 
 _kvm_is_running ${1} || _kvm_is_freezed ${1}
 if [ $? -eq 0 ] ; then
-	_kvm_backup ${1} $(date +%s)
+	_kvm_backup ${1}
 else
 	ABORT "not allowed while VM is stopped"
 fi
@@ -886,7 +889,7 @@ function hvm_vms_backup { # Sauvegarder l'état des VMs
 LOCK || ABORT "unable to acquire lock"
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
-_kvms_backup $(date +%s)
+_kvms_backup
 
 UNLOCK
 
@@ -949,11 +952,21 @@ return 0
 
 }
 
-function hvm_vms_list_backups { # Liste des VMs sauvegardés / avec snapshot
+function hvm_vms_list_backups { # Liste des VMs sauvegardés
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
 _kvms_list_backups
+
+return 0
+
+}
+
+function hvm_vms_list_snapshots { # Liste des VMs avec snapshot
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+
+_kvms_list_snapshots
 
 return 0
 
