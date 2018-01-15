@@ -162,6 +162,9 @@ case ${1} in
 					backups)
 						hvm_vms_list_backups
 					;;
+					snapshots)
+						hvm_vms_list_snapshots
+					;;
 					autostart)
 						hvm_vms_list_autostart
 					;;
@@ -169,7 +172,7 @@ case ${1} in
 						hvm_vms_list_prio
 					;;
 					*)
-						echo "Usage: hvm vms list all|running|freezed|stopped|backups|autostart|prio"
+						echo "Usage: hvm vms list all|running|freezed|stopped|backups|snapshots|autostart|prio"
 						exit 0
 					;;
 				esac
