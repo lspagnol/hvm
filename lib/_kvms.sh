@@ -66,7 +66,7 @@ return 0
 
 function _kvms_list_backups { # Afficher liste VMs avec sauvegarde
 
-ls -1 ${KVM_BACKUP_DIR} 2>/dev/null |sed 's/\.save//'
+ls -1 ${KVM_BACKUP_DIR} 2>/dev/null |sed 's/\.backup//'
 
 return 0
 
@@ -166,19 +166,13 @@ function _kvms_backup { # Sauvegarder l'état des VMs
 
 local vms vm
 
-if [ -z "${1}" ] ; then
-	ERROR "timestamp is required"
-	return 1
-fi
-
 vms=$(_kvms_list_prio |sort -nr |awk '{print $2}')
 
 for vm in ${vms} ; do
 
 	_kvm_is_running ${vm} || _kvm_is_freezed ${vm}
 	if [ $? -eq 0 ] ; then
-		_kvm_backup ${vm} ${1}
-		sleep 1
+		_kvm_backup ${vm}
 	fi
 
 done
@@ -195,10 +189,12 @@ vms=$(_kvms_list_prio |sort -n |awk '{print $2}')
 
 for vm in ${vms} ; do
 
-	_kvm_is_running ${vm}
+	_kvm_is_running ${vm} || _kvm_is_freezed ${vm}
 	if [ $? -ne 0 ] ; then
-		_kvm_restore ${vm}
-		sleep 1
+		_kvm_has_backup ${vm}
+		if [ $? -eq 0 ] ; then
+			_kvm_restore ${vm}
+		fi
 	fi
 
 done
@@ -217,12 +213,11 @@ vms=$(_kvms_list_prio |sort -n |awk '{print $2}')
 
 for vm in ${vms} ; do
 
-	_kvm_is_running ${vm}
+	_kvm_is_running ${vm} || _kvm_has_backup ${vm} || _kvm_is_freezed ${vm}
 	if [ $? -ne 0 ] ; then
 		_kvm_has_autostart ${vm}
 		if [ $? -eq 0 ] ; then
 			_kvm_start ${vm}
-			sleep 1
 		fi
 	fi
 
@@ -243,7 +238,6 @@ for vm in ${vms} ; do
 	_kvm_is_running ${vm} || _kvm_is_freezed ${vm}
 	if [ $? -eq 0 ] ; then
 		_kvm_shutdown ${vm}
-		sleep 1
 	fi
 
 done
@@ -263,7 +257,6 @@ for vm in ${vms} ; do
 	_kvm_is_running ${vm} || _kvm_is_freezed ${vm}
 	if [ $? -eq 0 ] ; then
 		_kvm_poweroff ${vm}
-		sleep 1
 	fi
 
 done
