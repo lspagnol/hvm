@@ -42,7 +42,7 @@ function _kvm_has_backup { # Vérifier si la VM a une sauvegarde
 #- 0 -> la VM a une sauvegarde
 #- 1 -> la VM n'a pas de sauvegarde
 
-if [ -f ${KVM_BACKUP_DIR}/${1}.save ] ; then
+if [ -f ${KVM_BACKUP_DIR}/${1}.backup ] ; then
 	return 0
 else
 	return 1
@@ -101,49 +101,24 @@ return 0
 
 function _kvm_backup { # Sauvegarder l'état de la VM
 #- Arg 1 => nom de la VM
-#- Arg 2 => timestamp
-
-if [ -z "${2}" ] ; then
-	ERROR "timestamp is required"
-	return 1
-fi
 
 if [ -z "${1}" ] ; then
 	ERROR "VM name is required"
 	return 1
 fi
 
-mkdir -p ${HVM_TMP_DIR}/backups
+mkdir -p ${KVM_BACKUP_DIR}
 
 _kvm_is_running ${1} || _kvm_is_freezed ${1}
 if [ $? -eq 0 ] ; then
 
-	_kvm_has_snapshot ${1}
-	if [ $? -eq 0 ] ; then
-	
-		# 'virsh save' ne fonctionne pas correctement avec des snapshots KVM => utiliser les snapshots KVM
-		WARNING "using 'snapshot-create-as' instead of 'save' for '${1}'"
-		virsh snapshot-create-as ${1} --name ${1}@${2} --halt |grep -v '^$'
-		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-			ERROR "'virsh snapshot-create-as' has failed"
-			return 1
-		else
-			echo "${2}" > ${HVM_TMP_DIR}/backups/${1}
-			return 0
-		fi
-	
-	else
-	
-		virsh managedsave ${1} |grep -v '^$'
-		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-			ERROR "'virsh managedsave' has failed"
-			return 1
-		else
-			touch ${HVM_TMP_DIR}/backups/${1}
-			return 0
-		fi
-	
+	virsh save ${1} ${KVM_BACKUP_DIR}/${1}.backup |grep -v '^$'
+	if [ ${PIPESTATUS[0]} -ne 0 ] ; then
+		ERROR "'virsh managedsave' has failed"
+		return 1
 	fi
+
+	return 0
 
 else
 
@@ -151,8 +126,6 @@ else
 	return 1
 
 fi
-
-sleep 1
 
 }
 
@@ -172,52 +145,22 @@ if [ $? -ne 0 ] ; then
 	_kvm_has_backup ${1}
 	if [ $? -eq 0 ] ; then
 
-		snap=$(<${HVM_TMP_DIR}/backups/${1})
-		if [ -z "${snap}" ] ; then
-			# La VM a été sauvegardée avec 'managedsave'
-
-			virsh start ${1} |grep -v '^$'
-			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-				ERROR "'virsh start' has failed for VM '${1}'"
-				return 1
-			fi
-
-			rm ${HVM_TMP_DIR}/backups/${1}
-
-			# Mise à l'heure de la VM
-			_kvm_ga_timesync ${1}
-
-			return 0
-
-		else
-			# La VM a été sauvegardée avec 'snapshot-create-as'
-
-			virsh snapshot-revert ${1} --snapshotname ${1}@${snap} --running |grep -v '^$'
-			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-				ERROR "'virsh snapshot-revert' has failed for VM '${1}'"
-				return 1
-			fi
-			echo "Domain snapshot ${1}@${snap} restored"
-
-			# Mise à l'heure de la VM
-			sleep 1
-			_kvm_ga_timesync ${1}
-
-			virsh snapshot-delete ${1} --snapshotname ${1}@${snap} |grep -v '^$'
-			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-				ERROR "'virsh snapshot-delete' has failed for VM '${1}'"
-				return 1
-			fi
-
-			rm ${HVM_TMP_DIR}/backups/${1}
-
-			return 0
-
+		virsh restore ${KVM_BACKUP_DIR}/${1}.backup |grep -v '^$'
+		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
+			ERROR "'virsh start' has failed for VM '${1}'"
+			return 1
 		fi
+
+		rm ${KVM_BACKUP_DIR}/${1}.backup
+
+		# Mise à l'heure de la VM
+		_kvm_ga_timesync ${1}
+
+		return 0
 
 	else
 
-		ERROR "VM '${1}' has no backup/snapshot"
+		ERROR "VM '${1}' has no backup"
 		return 1
 
 	fi
@@ -228,8 +171,6 @@ else
 	return 1
 
 fi
-
-sleep 1
 
 }
 
@@ -276,8 +217,6 @@ else
 
 fi
 
-sleep 1
-
 }
 	
 function _kvm_shutdown { # Arrêter une VM
@@ -290,7 +229,10 @@ if [ -z "${1}" ] ; then
 	return 1
 fi
 
-_kvm_is_freezed ${1} && _kvm_unfreeze ${1}
+_kvm_is_freezed ${1}
+if [ $? -eq 0 ] ; then
+	_kvm_unfreeze ${1}
+fi
 
 _kvm_is_running ${1}
 if [ $? -eq 0 ] ; then
@@ -305,30 +247,10 @@ if [ $? -eq 0 ] ; then
 	[ ${PIPESTATUS[0]} -eq 0 ] || virsh shutdown ${1} |grep -v '^$'
 
 	# Supprimer la sauvegarde
-	if [ -f ${KVM_BACKUP_DIR}/${vm}.save ] ; then
+	if [ -f ${KVM_BACKUP_DIR}/${1}.backup ] ; then
 	
+		rm ${KVM_BACKUP_DIR}/${1}.backup |grep -v '^$'
 		WARNING "backup deleted for '${1}'"
-		virsh managedsave-remove ${1} |grep -v '^$'
-	
-	fi
-	
-	# Supprimer le snapshot HVM
-	if [ -f ${HVM_TMP_DIR}/backups/${1} ] ; then
-
-		snap=$(<${HVM_TMP_DIR}/backups/${1})
-	
-		if [ ! -z "${snap}" ] ; then
-	
-				virsh snapshot-delete ${1} --snapshotname ${1}@${snap} |grep -v '^$'
-				WARNING "snapshot '${1}@${snap}' deleted"
-	
-				if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-					ERROR "'virsh snapshot-delete' has failed for VM '${1}'"
-				fi	
-	
-		fi
-		
-		rm ${HVM_TMP_DIR}/backups/${1}
 	
 	fi
 
@@ -340,8 +262,6 @@ else
 	return 1
 
 fi
-
-sleep 1
 
 }
 
@@ -361,31 +281,11 @@ if [ $? -eq 0 ] ; then
 	virsh destroy ${1} |grep -v '^$'
 	
 	# Supprimer la sauvegarde
-	if [ -f ${KVM_BACKUP_DIR}/${1}.save ] ; then
+	if [ -f ${KVM_BACKUP_DIR}/${1}.backup ] ; then
 	
+		rm ${KVM_BACKUP_DIR}/${1}.backup |grep -v '^$'
 		WARNING "backup deleted for '${1}'"
-		virsh managedsave-remove ${1} |grep -v '^$'
 	
-	fi
-
-	# Supprimer le snapshot HVM
-	if [ -f ${HVM_TMP_DIR}/backups/${1} ] ; then
-	
-		snap=$(<${HVM_TMP_DIR}/backups/${1})
-
-		if [ ! -z "${snap}" ] ; then
-
-				virsh snapshot-delete ${1} --snapshotname ${1}@${snap} |grep -v '^$'
-				WARNING "snapshot '${1}@${snap}' deleted"
-
-				if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-					ERROR "'virsh snapshot-delete' has failed for VM '${1}'"
-				fi	
-
-		fi
-
-		rm ${HVM_TMP_DIR}/backups/${1}
-
 	fi
 
 	return 0
@@ -396,8 +296,6 @@ else
 	return 1
 
 fi
-
-sleep 1
 
 }
 
