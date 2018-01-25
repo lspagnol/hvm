@@ -321,6 +321,15 @@ chattr +i /var/lib/libvirt/images
 echo
 
 ########################################################################
+echo "* Installation du script 'zfs-tuning'"
+
+wget -O zfs-tuning https://raw.githubusercontent.com/lspagnol/zfs-tuning/master/zfs-tuning
+chmod +x zfs-tuning
+cp -f zfs-tuning /usr/local/sbin
+
+echo
+
+########################################################################
 cat<<EOF
 ** Préparation terminée ! **
 
