@@ -148,6 +148,7 @@ if [ $? -ne 0 ] ; then
 		virsh restore ${KVM_BACKUP_DIR}/${1}.backup |grep -v '^$'
 		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
 			ERROR "'virsh start' has failed for VM '${1}'"
+			rm ${KVM_BACKUP_DIR}/${1}.backup
 			return 1
 		fi
 
