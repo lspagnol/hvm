@@ -40,15 +40,15 @@ snaps=$(_zfs_snap_list_all |sed 's/^.*@//g' |sort |uniq)
 
 for snap in ${snaps} ; do
 	echo -n "${snap} "
-	ls ${HVM_TMP_DIR}/.zfs 2>/dev/null >/dev/null
+	ls ${KVM_LIBVIRT_VARLIB_DIR}/.zfs 2>/dev/null >/dev/null
 	if [ $? -eq 0 ] ; then
-		ls ${HVM_TMP_DIR}/.zfs/snapshot/${snap}/backups/* 2>/dev/null >/dev/null
+		ls ${KVM_LIBVIRT_VARLIB_DIR}/.zfs/snapshot/${snap}/qemu/save/*.backup 2>/dev/null >/dev/null
 		if [ $? -eq 0 ] ; then
 			echo -n "B "
 		else
 			echo -n "- "
 		fi
-		umount ${HVM_TMP_DIR}/.zfs/snapshot/${snap}
+		umount ${KVM_LIBVIRT_VARLIB_DIR}/.zfs/snapshot/${snap}
 	else
 		# Le volume n'est pas monté, impossible de vérifier s'il existe
 		# des sauvegardes
