@@ -18,8 +18,6 @@ function hvm_constraint_show { # Afficher la contrainte d'hébergement des VMs
 
 local c
 
-_hv_status || ABORT "not allowed while libvirt is stopped"
-
 if [ -f ${HVM_TMP_DIR}/constraint ] ; then
 	c=$(<${HVM_TMP_DIR}/constraint)
 	c=(${c})
