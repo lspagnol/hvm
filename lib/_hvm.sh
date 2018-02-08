@@ -79,8 +79,6 @@ return 0
 
 function hvm_constraint_unset { # Annuler la contrainte d'hébergement des VMs
 
-_hv_status || ABORT "not allowed while libvirt is stopped"
-
 if [ -f ${HVM_TMP_DIR}/constraint ] ; then
 	rm ${HVM_TMP_DIR}/constraint
 fi
