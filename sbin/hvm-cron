@@ -68,7 +68,7 @@ if [ -f ${HVM_TMP_DIR}/constraint ] ; then
 	d=$(date +%s) # timestamp actuel
 	if [ ${d} -gt ${e} ] ; then
 		# Date de la contraite dépassée -> supprimer la contrainte
-		hvm_constraint_unset >/dev/null
+		hvm_constraint_unset
 	fi
 	if [ ${d} -ge ${b} ] && [ ${d} -le ${e} ] ; then
 		WARNING "$(hvm_constraint_show)"
