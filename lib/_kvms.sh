@@ -105,6 +105,23 @@ return 0
 
 }
 
+function _kvms_list_autobackup { # Afficher la liste des VMs avec sauvegarde automatique
+
+local vms vm
+
+vms=$(_kvms_list)
+
+for vm in ${vms} ; do
+	_kvm_has_autobackup ${vm}
+	if [ $? -eq 0 ] ; then
+		echo ${vm}
+	fi
+done
+
+return 0
+
+}
+
 function _kvms_list_prio { # Afficher la priorité des VMs
 
 local vms vm
@@ -162,7 +179,6 @@ return 0
 ########################################################################
 
 function _kvms_backup { # Sauvegarder l'état des VMs
-#- Arg 1 -> timestamp
 
 local vms vm
 
@@ -173,6 +189,28 @@ for vm in ${vms} ; do
 	_kvm_is_running ${vm} || _kvm_is_freezed ${vm}
 	if [ $? -eq 0 ] ; then
 		_kvm_backup ${vm}
+	fi
+
+done
+
+return 0
+
+}
+
+function _kvms_autobackup { # Sauvegarder l'état des VMs (automatique=
+
+local vms vm
+
+vms=$(_kvms_list_prio |sort -nr |awk '{print $2}')
+
+for vm in ${vms} ; do
+
+	_kvm_is_running ${vm} || _kvm_is_freezed ${vm}
+	if [ $? -eq 0 ] ; then
+		_kvm_has_autobackup ${vm}
+		if [ $? -eq 0 ] ; then
+			_kvm_backup ${vm}
+		fi
 	fi
 
 done

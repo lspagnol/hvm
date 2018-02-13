@@ -79,6 +79,22 @@ fi
 
 }
 
+function _kvm_has_autobackup { # Vérifier si la VM peut être sauvegardée automatiquement
+#- Arg 1 => nom de la VM
+#- Codes retour:
+#- 0 -> sauvegarde automatique activée
+#- 1 -> sauvegarde automatique désactivée
+
+virsh desc ${1} |egrep -q '^autobackup=(yes|true|1)$'
+
+if [ $? -eq 0 ] ; then
+	return 0
+else
+	return 1
+fi
+
+}
+
 function _kvm_prio { # Afficher la priorité de la VM
 #- Arg 1 => nom de la VM
 #- priorité de 1 à 99, correspond à l'ordre d'activation de la VM

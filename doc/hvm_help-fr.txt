@@ -42,6 +42,9 @@ VMs are stopped
 
   -> "hvm backup secure"
 
+** ATTENTION ** le cycle de sauvegarde complet ne prend en charge que
+                les VMs avec le paramètre "autobackup=yes"
+
 
 * Migration "sécurisée" des VMs:
 - Fonctionne dans tous les cas
@@ -235,6 +238,7 @@ VMs are stopped
 |  |  |--* backups      Seulement les VMs avec sauvegarde
 |  |  |--* snapshots    Seulement les VMs avec snapshot(s)
 |  |  |--* autostart    Seulement les VMs avec démarrage automatique
+|  |  |--* autobackup   Seulement les VMs avec sauvegarde automatique
 |  |  |--* prio         Priorité des VMs
 |  |--* start           Démarrer les VMs avec démarrage automatique
 |  |--* backup          Sauvegarder l'état des VMs

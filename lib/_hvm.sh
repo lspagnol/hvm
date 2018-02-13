@@ -123,7 +123,7 @@ if [ "${1}" = "-u" ] ; then
 	_kvms_freeze
 else
 	echo "* Backup VMs state"
-	_kvms_backup
+	_kvms_autobackup
 fi
 echo
 
@@ -973,6 +973,16 @@ function hvm_vms_list_autostart { # Liste des VMs avec démarrage automatique
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
 _kvms_list_autostart
+
+return 0
+
+}
+
+function hvm_vms_list_autobackup { # Liste des VMs avec démarrage sauvegarde automatique
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+
+_kvms_list_autobackup
 
 return 0
 
