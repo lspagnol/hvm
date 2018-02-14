@@ -170,14 +170,27 @@ VMs are stopped
   => utiliser le script 'hvm-interface-config' pour ajouter / supprimer
      des VLANs
 
+
 ******************************** NOTES *********************************
 
 * Le démarrage automatique natif des VMs est systématiquement neutralisé
   pour que le script "hvm" puisse contrôler totalement les VMs.
 
-* Le démarrage automatique est réalisé si la phrase "autostart=yes" est
-  indiqué dans le champ "Description" de la VM.
+* Les options spécifiques aux scripts "HVM" doivent être ajoutées dans
+  le bloc "Description" des VMs:
   Virt-manager => Appercu => Détails de base => Description
+
+  - "autostart=yes" => la VM sera démarrée automatiquement via la
+    commande "hvm vms start".
+
+  - "autobackup=yes" => l'état de la VM est sauvegardé (snapshot de VM)
+    avant le snapshot ZFS. La VM sera restaurée dans cet état via la
+    commande "hvm vms restore".
+
+  - "vmgenid=yes" => activation de la fonctionnalité "VM GenerationID"
+    est activée pour la VM (serveurs AD / Microsoft).
+    ATTENTION: la prise en charge des modification n'est effective que
+    par le démarrage via la commande "hvm vm start"
 
 * La priorité d'activation des VMs peut être indiqué en ajoutant la
   phrase "prio=xx" dans le champ "Description" de la VM.
@@ -188,6 +201,7 @@ VMs are stopped
     => de la plus haute à la plus basse
   - les VMs sont désactivées dans l'ordre inverse de priorité
     => de la plus basse à la plus haute
+
 
 ------------------------------------------------------------------------
 |                   Résumé des commandes disponibles                   | 
@@ -239,6 +253,7 @@ VMs are stopped
 |  |  |--* snapshots    Seulement les VMs avec snapshot(s)
 |  |  |--* autostart    Seulement les VMs avec démarrage automatique
 |  |  |--* autobackup   Seulement les VMs avec sauvegarde automatique
+|  |  |--* vmgenid      Seulement les VMs avec "VM GenerationID" activé
 |  |  |--* prio         Priorité des VMs
 |  |--* start           Démarrer les VMs avec démarrage automatique
 |  |--* backup          Sauvegarder l'état des VMs

@@ -988,6 +988,16 @@ return 0
 
 }
 
+function hvm_vms_list_vmgenid { # Liste des VMs avec "VM GenerationID" activé
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+
+_kvms_list_vmgenid
+
+return 0
+
+}
+
 function hvm_vms_list_prio { # Liste de priorité des VMs
 
 _hv_status || ABORT "not allowed while libvirt is stopped"

@@ -171,11 +171,14 @@ case ${1} in
 					autobackup)
 						hvm_vms_list_autobackup
 					;;
+					vmgenid)
+						hvm_vms_list_vmgenid
+					;;
 					prio)
 						hvm_vms_list_prio
 					;;
 					*)
-						echo "Usage: hvm vms list all|running|freezed|stopped|backups|snapshots|autostart|autobackup|prio"
+						echo "Usage: hvm vms list all|running|freezed|stopped|backups|snapshots|autostart|autobackup|vmgenid|prio"
 						exit 0
 					;;
 				esac

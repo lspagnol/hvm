@@ -122,6 +122,23 @@ return 0
 
 }
 
+function _kvms_list_vmgenid { # Afficher la liste des VMs avec "VM GenerationID" activé
+
+local vms vm
+
+vms=$(_kvms_list)
+
+for vm in ${vms} ; do
+	_kvm_has_vmgenid ${vm}
+	if [ $? -eq 0 ] ; then
+		echo ${vm}
+	fi
+done
+
+return 0
+
+}
+
 function _kvms_list_prio { # Afficher la priorité des VMs
 
 local vms vm

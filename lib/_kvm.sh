@@ -95,6 +95,22 @@ fi
 
 }
 
+function _kvm_has_vmgenid { # Vérifier si la fonctionnalité "VM generationID est activée" pour la VM
+#- Arg 1 => nom de la VM
+#- Codes retour:
+#- 0 -> VM generationID activé
+#- 1 -> VM generationID désactivé
+
+virsh desc ${1} |egrep -q '^vmgenid=(yes|true|1)$'
+
+if [ $? -eq 0 ] ; then
+	return 0
+else
+	return 1
+fi
+
+}
+
 function _kvm_prio { # Afficher la priorité de la VM
 #- Arg 1 => nom de la VM
 #- priorité de 1 à 99, correspond à l'ordre d'activation de la VM
@@ -216,6 +232,9 @@ if [ $? -ne 0 ] ; then
 
 		# Activer Qemu Guest Agent pour la VM
 		_kvm_ga_enable ${1}
+
+		# Activer la fonctionnalité "VM GenerationID" (AD / serveur Windows)
+		_kvm_vmgenid_enable ${1}
 
 		virsh start ${1} |grep -v '^$'
 		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
@@ -355,6 +374,57 @@ return 0
 }
 
 ########################################################################
+
+function _kvm_vmgenid_enable { # Activer VM GenerationID pour une VM
+#- Arg 1 => nom de la VM
+#- Vérification: virsh qemu-monitor-command NOM_VM --hmp info vm-generation-id
+
+local b
+local e
+
+if [ -z "${1}" ] ; then
+	ERROR "VM name is required"
+	return 1
+fi
+
+_kvm_has_vmgenid ${1}
+
+if [ $? -eq 0 ] ; then
+
+	grep -q "vmgenid,guid=auto" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml
+	if [ $? -ne 0 ] ; then
+	
+		sed -i "s/^<domain type='kvm'>/<domain type='kvm' xmlns:qemu='http:\/\/libvirt.org\/schemas\/domain\/qemu\/1.0'>\n  <qemu:commandline>\n   <qemu:arg value='-device'\/>\n   <qemu:arg value='vmgenid,guid=auto'\/>\n  <\/qemu:commandline>/g" /etc/libvirt/qemu/${1}.xml
+		virsh define /etc/libvirt/qemu/${1}.xml |grep -v '^$' 2>/dev/null >/dev/null
+	
+		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
+			WARNING "'virsh define' has failed for VM '${1}'"
+		fi
+		
+	fi
+
+else
+
+	grep -q "vmgenid,guid=auto" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml
+	if [ $? -eq 0 ] ; then
+
+		sed -i "s/^<domain type='kvm' xmlns:qemu='http:\/\/libvirt.org\/schemas\/domain\/qemu\/1.0'>/<domain type='kvm'>/g" /etc/libvirt/qemu/${1}.xml
+		b=$(grep -n -B2 -A1 "vmgenid,guid=auto" /etc/libvirt/qemu/${1}.xml |head -1 |cut -d- -f1)
+		e=$(grep -n -B2 -A1 "vmgenid,guid=auto" /etc/libvirt/qemu/${1}.xml |tail -1 |cut -d- -f1)
+		sed -i "${b},${e}d" /etc/libvirt/qemu/${1}.xml
+		virsh define /etc/libvirt/qemu/${1}.xml |grep -v '^$' 2>/dev/null >/dev/null
+	
+		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
+			WARNING "'virsh define' has failed for VM '${1}'"
+		fi		
+		
+	fi
+
+fi
+
+return 0
+
+}
 
 function _kvm_ga_enable { # Activer Qemu Guest Agent pour une VM
 #- Arg 1 => nom de la VM
