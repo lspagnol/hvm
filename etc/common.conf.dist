@@ -37,9 +37,7 @@ HVM_TMP_DIR="/var/lib/hvm"
 # HVM: dossiers à démonter lors de l'arrêt de l'hyperviseur (zfs_umount.sh)
 HVM_UMOUNTS="/LIBVIRT/ISO /LIBVIRT/ROT /LIBVIRT/SSD /var/lib/libvirt /etc/libvirt /var/lib/hvm"
 
-########################################################################
-
-# Volumes ZFS partagés / synchronisés
+# Volumes racine ZFS partagés / synchronisés
 HVM_ZVOLS="SSD/SHARED ROT/SHARED"
 
 # Nombre de snapshots ZFS les plus récents qui ne doivent jamais être
