@@ -217,6 +217,11 @@ mount -t zfs ROT/SHARED/libvirt/var_lib /var/lib/libvirt -o defaults,noatime,nod
 echo
 
 ########################################################################
+echo "* Création du volume partagé HVM (données à transférer avec les snapshots)"
+zfs create -o mountpoint=/var/lib/hvm ROT/SHARED/hvm
+echo
+
+########################################################################
 echo "* Installer les paquets de virtualisation"
 
 apt-get -y install libvirt-bin virtinst qemu-kvm ovmf virt-top

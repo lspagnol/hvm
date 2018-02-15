@@ -381,21 +381,26 @@ function _kvm_vmgenid_enable { # Activer VM GenerationID pour une VM
 
 local b
 local e
+local f
 
 if [ -z "${1}" ] ; then
 	ERROR "VM name is required"
 	return 1
 fi
 
+# Copie du fichier XML d'origine
+f=$(mktemp --suffix .xml)
+cp ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ${f}
+
 _kvm_has_vmgenid ${1}
 
 if [ $? -eq 0 ] ; then
 
-	grep -q "vmgenid,guid=auto" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml
+	grep -q "vmgenid,guid=auto" ${f}
 	if [ $? -ne 0 ] ; then
-	
-		sed -i "s/^<domain type='kvm'>/<domain type='kvm' xmlns:qemu='http:\/\/libvirt.org\/schemas\/domain\/qemu\/1.0'>\n  <qemu:commandline>\n   <qemu:arg value='-device'\/>\n   <qemu:arg value='vmgenid,guid=auto'\/>\n  <\/qemu:commandline>/g" /etc/libvirt/qemu/${1}.xml
-		virsh define /etc/libvirt/qemu/${1}.xml |grep -v '^$' 2>/dev/null >/dev/null
+
+		sed -i "s/^<domain type='kvm'>/<domain type='kvm' xmlns:qemu='http:\/\/libvirt.org\/schemas\/domain\/qemu\/1.0'>\n  <qemu:commandline>\n   <qemu:arg value='-device'\/>\n   <qemu:arg value='vmgenid,guid=auto'\/>\n  <\/qemu:commandline>/g" ${f}
+		virsh define ${f} |grep -v '^$' 2>/dev/null >/dev/null
 	
 		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
 			WARNING "'virsh define' has failed for VM '${1}'"
@@ -405,14 +410,14 @@ if [ $? -eq 0 ] ; then
 
 else
 
-	grep -q "vmgenid,guid=auto" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml
+	grep -q "vmgenid,guid=auto" ${f}
 	if [ $? -eq 0 ] ; then
 
-		sed -i "s/^<domain type='kvm' xmlns:qemu='http:\/\/libvirt.org\/schemas\/domain\/qemu\/1.0'>/<domain type='kvm'>/g" /etc/libvirt/qemu/${1}.xml
-		b=$(grep -n -B2 -A1 "vmgenid,guid=auto" /etc/libvirt/qemu/${1}.xml |head -1 |cut -d- -f1)
-		e=$(grep -n -B2 -A1 "vmgenid,guid=auto" /etc/libvirt/qemu/${1}.xml |tail -1 |cut -d- -f1)
-		sed -i "${b},${e}d" /etc/libvirt/qemu/${1}.xml
-		virsh define /etc/libvirt/qemu/${1}.xml |grep -v '^$' 2>/dev/null >/dev/null
+		sed -i "s/^<domain type='kvm' xmlns:qemu='http:\/\/libvirt.org\/schemas\/domain\/qemu\/1.0'>/<domain type='kvm'>/g" ${f}
+		b=$(grep -n -B2 -A1 "vmgenid,guid=auto" ${f} |head -1 |cut -d- -f1)
+		e=$(grep -n -B2 -A1 "vmgenid,guid=auto" ${f} |tail -1 |cut -d- -f1)
+		sed -i "${b},${e}d" ${f}
+		virsh define ${f} |grep -v '^$' 2>/dev/null >/dev/null
 	
 		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
 			WARNING "'virsh define' has failed for VM '${1}'"
@@ -421,6 +426,8 @@ else
 	fi
 
 fi
+
+rm ${f}
 
 return 0
 
