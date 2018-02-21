@@ -261,18 +261,6 @@ VMs are stopped
 |
 |--* vms                Contrôle collectif des VMs
 |  |--* status          Etat des VMs
-|  |--* list            Liste des VMs
-|  |  |--* all          Toutes les VMs (avec leur état)
-|  |  |--* running      Seulement les VMs en marche
-|  |  |--* freezed      Seulement les VMs figées
-|  |  |--* stopped      Seulement les VMs arrêtées
-|  |  |--* backups      Seulement les VMs avec sauvegarde
-|  |  |--* snapshots    Seulement les VMs avec snapshot(s)
-|  |  |--* autostart    Seulement les VMs avec démarrage automatique
-|  |  |--* autobackup   Seulement les VMs avec sauvegarde automatique
-|  |  |--* prio         Priorité des VMs
-|  |  |--* guestagent   Seulement les VMs avec "Guest Agent" activé
-|  |  |--* vmgenid      Seulement les VMs avec "VM GenerationID" activé
 |  |--* start           Démarrer les VMs avec démarrage automatique
 |  |--* backup          Sauvegarder l'état des VMs
 |  |--* restore         Restaurer l'état des VMs
@@ -280,18 +268,29 @@ VMs are stopped
 |  |--* unfreeze        Reprise des VMs figées
 |  |--* shutdown        Arrêter les VMs
 |  |--* poweroff        Couper l'alimentation des VMs
+|  |--* list            Liste des VMs
+|     |--* all          Toutes les VMs (avec leur état)
+|     |--* running      Seulement les VMs en marche
+|     |--* freezed      Seulement les VMs figées
+|     |--* stopped      Seulement les VMs arrêtées
+|     |--* backups      Seulement les VMs avec sauvegarde
+|     |--* snapshots    Seulement les VMs avec snapshot(s)
+|     |--* autostart    Seulement les VMs avec démarrage automatique
+|     |--* autobackup   Seulement les VMs avec sauvegarde automatique
+|     |--* prio         Priorité des VMs
+|     |--* guestagent   Seulement les VMs avec "Guest Agent" activé
+|     |--* vmgenid      Seulement les VMs avec "VM GenerationID" activé
 |
 |--* zfs                Contrôle des volumes ZFS
-|  |--* snap            Contrôle des snapshots ZFS
-|  |  |--* create       Créer les snapshots ZFS
-|  |  |--* sync         Synchroniser les snapshots sur l'hôte passif
-|  |  |--* createsync   Créer et synchroniser les snapshots
-|  |  |--* rollback     Retour arrière sur un snapshot
-|  |  |--* purge        Purger les snapshots
-|  |  |--* list         Liste des snapshots
-|  |     |--* all       Liste de tous les snapshots
-|  |     |--* dates     Liste des snapshots racine par date
-|  |     |--* lasts     Liste des snapshots les plus récents
 |  |--* mount           Monter les volumes ZFS
 |  |--* umount          Démonter les volumes ZFS
-
+|  |--* snap            Contrôle des snapshots ZFS
+|     |--* create       Créer les snapshots ZFS
+|     |--* sync         Synchroniser les snapshots sur l'hôte passif
+|     |--* createsync   Créer et synchroniser les snapshots
+|     |--* rollback     Retour arrière sur un snapshot
+|     |--* purge        Purger les snapshots
+|     |--* list         Liste des snapshots
+|        |--* all       Liste de tous les snapshots
+|        |--* dates     Liste des snapshots racine par date
+|        |--* lasts     Liste des snapshots les plus récents
