@@ -646,6 +646,7 @@ function hvm_vm_status { # Etat d'une VM
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 
 echo -n "KVM '${1}' is "
 _kvm_is_running ${1}
@@ -811,7 +812,7 @@ _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
 LOCK || ABORT "unable to acquire lock"
 
-_kvm_custom ${1} autostart ${2}
+_kvm_setup_autostart ${1} ${2}
 
 UNLOCK
 
@@ -827,7 +828,7 @@ _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
 LOCK || ABORT "unable to acquire lock"
 
-_kvm_custom ${1} autobackup ${2}
+_kvm_setup_autobackup ${1} ${2}
 
 UNLOCK
 
@@ -843,7 +844,7 @@ _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
 LOCK || ABORT "unable to acquire lock"
 
-_kvm_custom ${1} prio ${2}
+_kvm_setup_prio ${1} ${2}
 
 UNLOCK
 
