@@ -176,31 +176,38 @@ VMs are stopped
 * Le démarrage automatique natif des VMs est systématiquement neutralisé
   pour que le script "hvm" puisse contrôler totalement les VMs.
 
-* Les options spécifiques aux scripts "HVM" doivent être ajoutées dans
-  le bloc "Description" des VMs:
-  Virt-manager => Appercu => Détails de base => Description
+* Les options spécifiques aux scripts "HVM" sont contrôlés par la
+  commande "hvm vm setup". Les propriétes sont:
 
-  - "autostart=yes" => la VM sera démarrée automatiquement via la
-    commande "hvm vms start".
+  - "autostart" => démarrage automatique via "hvm vms start".
 
-  - "autobackup=yes" => l'état de la VM est sauvegardé (snapshot de VM)
-    avant le snapshot ZFS. La VM sera restaurée dans cet état via la
-    commande "hvm vms restore".
+  - "autobackup" => sauvegarde automatique de l'état de la VM (snapshot
+    de VM) avant le snapshot ZFS via "hvm backup". La VM sera restaurée
+    dans cet état via "hvm vms restore".
 
-  - "vmgenid=yes" => activation de la fonctionnalité "VM GenerationID"
-    est activée pour la VM (serveurs AD / Microsoft).
-    ATTENTION: la prise en charge des modification n'est effective que
-    par le démarrage via la commande "hvm vm start"
+  - "prio" => priorité de démarrage/sauvegarde/arrêt/restauration.
+    - la priorité la plus élevée est "1",
+    - la priorité la plus basse est "99",
+    - pas de priorité => "99" par défaut,
+    - les VMs sont activées dans l'ordre de priorité de la plus haute à
+      la plus basse,
+    - les VMs sont désactivées dans l'ordre inverse de priorité de la
+      plus basse à la plus haute.
 
-* La priorité d'activation des VMs peut être indiqué en ajoutant la
-  phrase "prio=xx" dans le champ "Description" de la VM.
-  - la priorité la plus élevée est "1"
-  - la priorité la plus basse est "99"
-  - pas de priorité => "99" par défaut
-  - les VMs sont activées dans l'ordre de priorité
-    => de la plus haute à la plus basse
-  - les VMs sont désactivées dans l'ordre inverse de priorité
-    => de la plus basse à la plus haute
+  - "guestagent" => Guest Agent (côté hyperviseur).
+
+  - Le réglage des propriétés par défaut peut être modifié en copiant
+    et modifiant les valeurs des variables suivantes dans le fichier
+    "/usr/local/hvm/etc/local.conf":
+    - HVM_DEFAULT_KVM_AUTOSTART="disabled"
+    - HVM_DEFAULT_KVM_AUTOBACKUP="enabled"
+    - HVM_DEFAULT_KVM_PRIO="99"
+    - HVM_DEFAULT_KVM_GUESTAGENT="enabled"
+    - HVM_DEFAULT_KVM_VMGENID="disabled"
+
+  - Lors du démarrage d'une VM via "hvm vm start", les valeurs par
+    défaut des propriétés sont automatiquement appliquées si elle sont
+    absentes.
 
 
 ------------------------------------------------------------------------
@@ -242,6 +249,7 @@ VMs are stopped
 |  |--* shutdown        Arrêter une VM
 |  |--* poweroff        Couper l'alimentation d'une VM
 |  |--* setup           Régler les propriétés d'une VM
+|     |--* defaults     Appliquer les réglages par défaut
 |     |--* autostart    Démarrage automatique
 |     |--* autobackup   Sauvegarde automatique (état complet)
 |     |--* prio         Priorité

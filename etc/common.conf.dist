@@ -45,11 +45,11 @@ HVM_ZVOLS="SSD/SHARED ROT/SHARED"
 HVM_KEEP_LASTS_ZFS_SNAPSHOTS="2"
 
 # Propriétés par défaut des VMs KVM
-HVM_DEFAULT_KVM_AUTOSTART="disable"
-HVM_DEFAULT_KVM_AUTOBACKUP="enable"
+HVM_DEFAULT_KVM_AUTOSTART="disabled"
+HVM_DEFAULT_KVM_AUTOBACKUP="enabled"
 HVM_DEFAULT_KVM_PRIO="99"
-HVM_DEFAULT_KVM_GUESTAGENT="enable"
-HVM_DEFAULT_KVM_VMGENID="disable"
+HVM_DEFAULT_KVM_GUESTAGENT="enabled"
+HVM_DEFAULT_KVM_VMGENID="disabled"
 
 ########################################################################
 

@@ -69,15 +69,6 @@ function _kvm_has_autostart { # Vérifier si la VM peut démarrer automatiquemen
 #- 0 -> démarrage automatique activé
 #- 1 -> démarrage automatique désactivé
 
-#virsh desc ${1} |egrep -q '^autostart=(yes|true|1)$'
-
-#if [ $? -eq 0 ] ; then
-	##return 0
-#else
-	##return 1
-#fi
-#return 0
-###
 local b
 local e
 
@@ -101,15 +92,6 @@ function _kvm_has_autobackup { # Vérifier si la VM peut être sauvegardée auto
 #- Codes retour:
 #- 0 -> sauvegarde automatique activée
 #- 1 -> sauvegarde automatique désactivée
-
-#virsh desc ${1} |egrep -q '^autobackup=(yes|true|1)$'
-
-#if [ $? -eq 0 ] ; then
-	##return 0
-#else
-	##return 1
-#fi
-#return 0
 
 local b
 local e
@@ -135,16 +117,6 @@ function _kvm_prio { # Afficher la priorité de la VM
 #- utiliser la liste inversée pour la désactivation
 #- pas de priorité => 99 par défaut
 
-#local p
-
-#p=$(virsh desc ${1} |egrep '^prio=[0-9]+$')
-#p=${p#*=}
-#p=${p:-99}
-
-#echo ${p}
-
-#return 0
-###########
 local b
 local e
 local p
@@ -293,6 +265,12 @@ if [ $? -ne 0 ] ; then
 
 	else
 
+		# Appliquer les réglages par défaut
+		grep -q "<urca:custom xmlns:urca" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml
+		if [ $? -ne 0 ] ; then
+			_kvm_setup_defaults ${1}
+		fi
+
 		virsh start ${1} |grep -v '^$'
 		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
 			ERROR "'virsh start' has failed for VM '${1}'"
@@ -436,8 +414,24 @@ function _kvm_setup_defaults { # Rélgages par défaut
 #- Arg 1 => nom de la VM
 
 _kvm_custom ${1} defaults
-_kvm_setup_ga ${1} ${HVM_DEFAULT_KVM_GUESTAGENT}
-_kvm_setup_vmgenid ${1} ${HVM_DEFAULT_KVM_VMGENID}
+
+case ${HVM_DEFAULT_KVM_GUESTAGENT} in
+	enabled)
+		_kvm_setup_ga ${1} enable
+	;;
+	disabled)
+		_kvm_setup_ga ${1} disable
+	;;
+esac
+
+case ${HVM_DEFAULT_KVM_VMGENID} in
+	enabled)
+		_kvm_setup_vmgenid ${1} enable
+	;;
+	disabled)
+		_kvm_setup_vmgenid ${1} disable
+	;;
+esac
 
 return 0
 
@@ -495,10 +489,10 @@ case ${2} in
 			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
 				WARNING "'virsh define' has failed for VM '${1}'"
 			else
-				echo -n "KVM '${1}' VM GenerationID is enabled"
+				echo "KVM '${1}' VM GenerationID is enabled"
 			fi
 		else
-			echo -n "KVM '${1}' VM GenerationID is already enabled"
+			echo "KVM '${1}' VM GenerationID is already enabled"
 		fi
 	;;
 	disable)
