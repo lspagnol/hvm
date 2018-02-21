@@ -500,10 +500,6 @@ echo "* Disable shared IP on local host"
 _hv_sharedIP_disable
 echo
 
-echo "* Stop libvirt on local host"
-_hv_stop
-echo
-
 # 3ème synchro ZFS (à froid)
 
 echo "* Create recursive ZFS snapshots (stage 3/3)"
@@ -523,11 +519,14 @@ echo "* Compare snapshots '${t2}' between hosts"
 _zfs_snap_compare ${t2}
 if [ $? -ne 0 ] ; then
 	_hv_sharedIP_enable
-	_hv_start
 	_kvms_restore
 	UNLOCK_REMOTE
 	ABORT "zfs snapshots '${t2}' are not available on remote host"
 fi
+echo
+
+echo "* Stop libvirt on local host"
+_hv_stop
 echo
 
 echo "* Start libvirt on remote host"
