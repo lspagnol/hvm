@@ -906,6 +906,27 @@ return 0
 
 }
 
+function hvm_vm_setup_defaults { # Réglage des propriétés par défaut
+#- Arg 1 -> nom VM
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+[ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
+LOCK || ABORT "unable to acquire lock"
+
+_kvm_setup_defaults ${1}
+
+_kvm_is_running ${1} || _kvm_is_freezed ${1}
+if [ $? -eq 0 ] ; then
+	[ -z "${2}" ] || WARNING "changes will be effective at next start"
+fi
+
+UNLOCK
+
+return 0
+
+}
+
 ########################################################################
 
 function hvm_vms_status { # Etat des VMs

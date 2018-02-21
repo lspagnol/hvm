@@ -432,6 +432,17 @@ return 0
 
 ########################################################################
 
+function _kvm_setup_defaults { # Rélgages par défaut
+#- Arg 1 => nom de la VM
+
+_kvm_custom ${1} defaults
+_kvm_setup_ga ${1} ${HVM_DEFAULT_KVM_GUESTAGENT}
+_kvm_setup_vmgenid ${1} ${HVM_DEFAULT_KVM_VMGENID}
+
+return 0
+
+}
+
 function _kvm_setup_autostart { # Gestion propriété "autostart"
 #- Arg 1 => nom de la VM
 #- Arg 2 => [enable|disable]
@@ -484,10 +495,10 @@ case ${2} in
 			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
 				WARNING "'virsh define' has failed for VM '${1}'"
 			else
-				echo -n "VM GenerationID is enabled"
+				echo -n "KVM '${1}' VM GenerationID is enabled"
 			fi
 		else
-			echo -n "VM GenerationID is already enabled"
+			echo -n "KVM '${1}' VM GenerationID is already enabled"
 		fi
 	;;
 	disable)
@@ -501,14 +512,14 @@ case ${2} in
 			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
 				WARNING "'virsh define' has failed for VM '${1}'"
 			else
-				echo "VM GenerationID is disabled"
+				echo "KVM '${1}' VM GenerationID is disabled"
 			fi
 		else
-			echo "VM GenerationID is already disabled"
+			echo "KVM '${1}' VM GenerationID is already disabled"
 		fi
 	;;
 	*)
-		echo -n "VM GenerationID is "
+		echo -n "KVM '${1}' VM GenerationID is "
 		_kvm_has_vmgenid ${1} && echo -n "enabled" || echo -n "disabled"
 		_kvm_is_running ${1}
 		if [ $? -eq 0 ] ; then
@@ -546,10 +557,10 @@ case ${2} in
 			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
 				WARNING "'virsh attach-device' has failed for VM '${1}'"
 			else
-				echo "GuestAgent is enabled"
+				echo "KVM '${1}' GuestAgent is enabled"
 			fi
 		else
-			echo "GuestAgent is already enabled"
+			echo "KVM '${1}' GuestAgent is already enabled"
 		fi
 	;;
 	disable)
@@ -559,14 +570,14 @@ case ${2} in
 			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
 				WARNING "'virsh detach-device' has failed for VM '${1}'"
 			else
-				echo "GuestAgent is disabled"
+				echo "KVM '${1}' GuestAgent is disabled"
 			fi
 		else
-			echo "GuestAgent is already disabled"
+			echo "KVM '${1}' GuestAgent is already disabled"
 		fi
 	;;
 	*)
-		echo -n "GuestAgent is "
+		echo -n "KVM '${1}' GuestAgent is "
 		_kvm_has_ga ${1} && echo enabled || echo disabled
 	;;
 esac
@@ -594,8 +605,9 @@ return 0
 
 function _kvm_custom { # Gestion propriétés autostart,autobackup,prio
 #- Arg 1 => nom de la VM
-#- Arg 2 => propriété (autostart|autobackup|prio)
+#- Arg 2 => propriété (autostart|autobackup|prio|defaults)
 #- Arg 3 => enable|disable|00-99
+#- Note: si Arg 2 ="defaults", applique les réglages par défaut
 
 local b
 local e
@@ -643,6 +655,13 @@ case ${2} in
 			c_prio="${3}"
 			m=1
 		fi
+	;;
+
+	defaults)
+		c_autostart="${HVM_DEFAULT_KVM_AUTOSTART}"
+		c_autobackup="${HVM_DEFAULT_KVM_AUTOBACKUP}"
+		c_prio="${HVM_DEFAULT_KVM_PRIO}"
+		m=1
 	;;
 
 esac
@@ -702,13 +721,18 @@ fi
 
 case ${2} in
 	autostart)
-		echo "Autostart is ${c_autostart}"
+		echo "KVM '${1}' autostart is ${c_autostart}"
 	;;
 	autobackup)
-		echo "Autobackup is ${c_autobackup}"
+		echo "KVM '${1}' autobackup is ${c_autobackup}"
 	;;
 	prio)
-		echo "Prio is ${c_prio}"
+		echo "KVM '${1}' prio is ${c_prio}"
+	;;
+	defaults)
+		echo "KVM '${1}' autostart is ${c_autostart}"
+		echo "KVM '${1}' autobackup is ${c_autobackup}"
+		echo "KVM '${1}' prio is ${c_prio}"
 	;;
 esac
 
