@@ -470,7 +470,9 @@ return 0
 function _kvm_setup_vmgenid { # Activer "VM GenerationID" pour une VM
 #- Arg 1 => nom de la VM
 #- Arg 2 => enable|disable
-#- Note: Vérification ID => "virsh qemu-monitor-command NOM_VM --hmp info vm-generation-id"
+#  Références: 
+#  https://github.com/qemu/qemu/blob/master/docs/specs/vmgenid.txt
+#  https://lists.gnu.org/archive/html/qemu-devel/2017-02/msg04076.html
 
 local b
 local e
