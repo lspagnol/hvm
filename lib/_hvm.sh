@@ -665,6 +665,7 @@ function hvm_vm_start { # Démarrer une VM
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 _kvm_is_running ${1}
@@ -685,6 +686,7 @@ function hvm_vm_freeze { # Figer une VMs
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 _kvm_is_running ${1}
@@ -705,6 +707,7 @@ function hvm_vm_unfreeze { # Reprise d'une VM figée
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 _kvm_is_freezed ${1}
@@ -723,6 +726,7 @@ function hvm_vm_shutdown { # Arrêt d'une VM
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 [ -z "${1}" ] && ABORT "VM name is required"
@@ -745,6 +749,7 @@ function hvm_vm_poweroff { # Couper une VM
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 _kvm_is_running ${1}
@@ -765,6 +770,7 @@ function hvm_vm_backup { # Sauvegarder l'état d'une VM
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 [ -z "${1}" ] && ABORT "KVM name is required"
@@ -787,6 +793,7 @@ function hvm_vm_restore { # Restaurer une VM sauvegardée
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 [ -z "${1}" ] && ABORT "KVM name is required"
@@ -810,6 +817,7 @@ function hvm_vm_setup_autostart { # Réglage du démarrage automatique
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 _kvm_setup_autostart ${1} ${2}
@@ -826,6 +834,7 @@ function hvm_vm_setup_autobackup { # Réglage de la sauvegarde automatique
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 _kvm_setup_autobackup ${1} ${2}
@@ -842,6 +851,7 @@ function hvm_vm_setup_prio { # Réglage de la priorité
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 _kvm_setup_prio ${1} ${2}
@@ -858,6 +868,7 @@ function hvm_vm_setup_ga { # Réglage du Guest-Agent
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 _kvm_setup_ga ${1} ${2}
@@ -879,6 +890,7 @@ function hvm_vm_setup_vmgenid { # Réglage du VM GenerationID
 
 _hv_status || ABORT "not allowed while libvirt is stopped"
 [ -z "${1}" ] && ABORT "VM name is required"
+[ -f ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ] || ABORT "VM '${1}' does not exist"
 LOCK || ABORT "unable to acquire lock"
 
 _kvm_setup_vmgenid ${1} ${2}
