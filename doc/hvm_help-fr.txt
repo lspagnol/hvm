@@ -196,6 +196,9 @@ VMs are stopped
 
   - "guestagent" => Guest Agent (côté hyperviseur).
 
+  - "vmgenid" => Prise en charge de la fonctionnalité "VM Generation ID"
+    pour les serveurs AD/Microsoft.
+
   - Le réglage des propriétés par défaut peut être modifié en copiant
     et modifiant les valeurs des variables suivantes dans le fichier
     "/usr/local/hvm/etc/local.conf":
