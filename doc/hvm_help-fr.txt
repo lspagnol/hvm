@@ -241,6 +241,12 @@ VMs are stopped
 |  |--* unfreeze        Reprise d'une VM figée
 |  |--* shutdown        Arrêter une VM
 |  |--* poweroff        Couper l'alimentation d'une VM
+|  |--* setup           Régler les propriétés d'une VM
+|     |--* autostart    Démarrage automatique
+|     |--* autobackup   Sauvegarde automatique (état complet)
+|     |--* prio         Priorité
+|     |--* guestagent   "Guest Agent" (côté hyperviseur)
+|     |--* vmgenid      "VM GenerationID" (côté hyperviseur)
 |
 |--* vms                Contrôle collectif des VMs
 |  |--* status          Etat des VMs
@@ -253,8 +259,9 @@ VMs are stopped
 |  |  |--* snapshots    Seulement les VMs avec snapshot(s)
 |  |  |--* autostart    Seulement les VMs avec démarrage automatique
 |  |  |--* autobackup   Seulement les VMs avec sauvegarde automatique
-|  |  |--* vmgenid      Seulement les VMs avec "VM GenerationID" activé
 |  |  |--* prio         Priorité des VMs
+|  |  |--* guestagent   Seulement les VMs avec "Guest Agent" activé
+|  |  |--* vmgenid      Seulement les VMs avec "VM GenerationID" activé
 |  |--* start           Démarrer les VMs avec démarrage automatique
 |  |--* backup          Sauvegarder l'état des VMs
 |  |--* restore         Restaurer l'état des VMs

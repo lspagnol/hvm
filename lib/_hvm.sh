@@ -18,8 +18,8 @@ function hvm_constraint_show { # Afficher la contrainte d'hébergement des VMs
 
 local c
 
-if [ -f ${HVM_TMP_DIR}/constraint ] ; then
-	c=$(<${HVM_TMP_DIR}/constraint)
+if [ -f ${HVM_VARLIB_DIR}/constraint ] ; then
+	c=$(<${HVM_VARLIB_DIR}/constraint)
 	c=(${c})
 	echo "${c[0]} $(date -d @${c[1]} +%d/%m/%Y) $(date -d @${c[2]} +%d/%m/%Y)"
 fi
@@ -67,7 +67,7 @@ fi
 d1=$(( ${d1} + 86399 ))
 
 # Enregister la contraine
-echo "${1} ${d0} ${d1}" > ${HVM_TMP_DIR}/constraint
+echo "${1} ${d0} ${d1}" > ${HVM_VARLIB_DIR}/constraint
 
 hvm_constraint_show
 
@@ -77,8 +77,8 @@ return 0
 
 function hvm_constraint_unset { # Annuler la contrainte d'hébergement des VMs
 
-if [ -f ${HVM_TMP_DIR}/constraint ] ; then
-	rm ${HVM_TMP_DIR}/constraint
+if [ -f ${HVM_VARLIB_DIR}/constraint ] ; then
+	rm ${HVM_VARLIB_DIR}/constraint
 fi
 
 hvm_constraint_show
@@ -803,6 +803,96 @@ return 0
 
 }
 
+function hvm_vm_setup_autostart { # Réglage du démarrage automatique
+#- Arg 1 -> nom VM
+#- Arg 2 -> enable|disable
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+[ -z "${1}" ] && ABORT "VM name is required"
+LOCK || ABORT "unable to acquire lock"
+
+_kvm_custom ${1} autostart ${2}
+
+UNLOCK
+
+return 0
+
+}
+
+function hvm_vm_setup_autobackup { # Réglage de la sauvegarde automatique
+#- Arg 1 -> nom VM
+#- Arg 2 -> enable|disable
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+[ -z "${1}" ] && ABORT "VM name is required"
+LOCK || ABORT "unable to acquire lock"
+
+_kvm_custom ${1} autobackup ${2}
+
+UNLOCK
+
+return 0
+
+}
+
+function hvm_vm_setup_prio { # Réglage de la priorité
+#- Arg 1 -> nom VM
+#- Arg 2 -> nombre 01 à 99
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+[ -z "${1}" ] && ABORT "VM name is required"
+LOCK || ABORT "unable to acquire lock"
+
+_kvm_custom ${1} prio ${2}
+
+UNLOCK
+
+return 0
+
+}
+
+function hvm_vm_setup_ga { # Réglage du Guest-Agent
+#- Arg 1 -> nom VM
+#- Arg 2 -> enable|disable
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+[ -z "${1}" ] && ABORT "VM name is required"
+LOCK || ABORT "unable to acquire lock"
+
+_kvm_setup_ga ${1} ${2}
+
+_kvm_is_running ${1} || _kvm_is_freezed ${1}
+if [ $? -eq 0 ] ; then
+	[ -z "${2}" ] || WARNING "change will be effective at next start"
+fi
+
+UNLOCK
+
+return 0
+
+}
+
+function hvm_vm_setup_vmgenid { # Réglage du VM GenerationID
+#- Arg 1 -> nom VM
+#- Arg 2 -> enable|disable
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+[ -z "${1}" ] && ABORT "VM name is required"
+LOCK || ABORT "unable to acquire lock"
+
+_kvm_setup_vmgenid ${1} ${2}
+
+_kvm_is_running ${1} || _kvm_is_freezed ${1}
+if [ $? -eq 0 ] ; then
+	[ -z "${2}" ] || WARNING "change will be effective at next start"
+fi
+
+UNLOCK
+
+return 0
+
+}
+
 ########################################################################
 
 function hvm_vms_status { # Etat des VMs
@@ -983,6 +1073,16 @@ function hvm_vms_list_autobackup { # Liste des VMs avec démarrage sauvegarde au
 _hv_status || ABORT "not allowed while libvirt is stopped"
 
 _kvms_list_autobackup
+
+return 0
+
+}
+
+function hvm_vms_list_ga { # Liste des VMs avec GuestAgent activé
+
+_hv_status || ABORT "not allowed while libvirt is stopped"
+
+_kvms_list_ga
 
 return 0
 

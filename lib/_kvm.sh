@@ -69,10 +69,27 @@ function _kvm_has_autostart { # Vérifier si la VM peut démarrer automatiquemen
 #- 0 -> démarrage automatique activé
 #- 1 -> démarrage automatique désactivé
 
-virsh desc ${1} |egrep -q '^autostart=(yes|true|1)$'
+#virsh desc ${1} |egrep -q '^autostart=(yes|true|1)$'
 
-if [ $? -eq 0 ] ; then
-	return 0
+#if [ $? -eq 0 ] ; then
+	##return 0
+#else
+	##return 1
+#fi
+#return 0
+###
+local b
+local e
+
+b=$(grep -n "<urca:custom " ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml |cut -d: -f1)
+e=$(grep -n "</urca:custom>" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml |cut -d: -f1)
+if [ ! -z "${b}" ] && [ ! -z "${e}" ] ; then
+	sed -n "${b},${e}p" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml |grep -q "<autostart>enabled</autostart>"
+	if [ $? -eq 0 ] ; then
+		return 0
+	else
+		return 1
+	fi
 else
 	return 1
 fi
@@ -85,8 +102,73 @@ function _kvm_has_autobackup { # Vérifier si la VM peut être sauvegardée auto
 #- 0 -> sauvegarde automatique activée
 #- 1 -> sauvegarde automatique désactivée
 
-virsh desc ${1} |egrep -q '^autobackup=(yes|true|1)$'
+#virsh desc ${1} |egrep -q '^autobackup=(yes|true|1)$'
 
+#if [ $? -eq 0 ] ; then
+	##return 0
+#else
+	##return 1
+#fi
+#return 0
+
+local b
+local e
+
+b=$(grep -n "<urca:custom " ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml |cut -d: -f1)
+e=$(grep -n "</urca:custom>" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml |cut -d: -f1)
+if [ ! -z "${b}" ] && [ ! -z "${e}" ] ; then
+	sed -n "${b},${e}p" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml |grep -q "<autobackup>enabled</autobackup>"
+	if [ $? -eq 0 ] ; then
+		return 0
+	else
+		return 1
+	fi
+else
+	return 1
+fi
+
+}
+
+function _kvm_prio { # Afficher la priorité de la VM
+#- Arg 1 => nom de la VM
+#- priorité de 1 à 99, correspond à l'ordre d'activation de la VM
+#- utiliser la liste inversée pour la désactivation
+#- pas de priorité => 99 par défaut
+
+#local p
+
+#p=$(virsh desc ${1} |egrep '^prio=[0-9]+$')
+#p=${p#*=}
+#p=${p:-99}
+
+#echo ${p}
+
+#return 0
+###########
+local b
+local e
+local p
+
+b=$(grep -n "<urca:custom " ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml |cut -d: -f1)
+e=$(grep -n "</urca:custom>" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml |cut -d: -f1)
+if [ ! -z "${b}" ] && [ ! -z "${e}" ] ; then
+	p=$(sed -n "${b},${e}p" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml |egrep "<prio>[0-9]+</prio>" |sed "s/<prio>// ; s/<\/prio>//")
+fi
+
+p=${p:-99}
+echo ${p}
+
+return 0
+
+}
+
+function _kvm_has_ga { # Vérifier si le Guest-Agent est activé pour la VM
+#- Arg 1 => nom de la VM
+#- Codes retour:
+#- 0 -> VM generationID activé
+#- 1 -> VM generationID désactivé
+
+grep -q "org\.qemu\.guest_agent\." ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml
 if [ $? -eq 0 ] ; then
 	return 0
 else
@@ -101,31 +183,12 @@ function _kvm_has_vmgenid { # Vérifier si la fonctionnalité "VM generationID e
 #- 0 -> VM generationID activé
 #- 1 -> VM generationID désactivé
 
-virsh desc ${1} |egrep -q '^vmgenid=(yes|true|1)$'
-
+grep -q "vmgenid,guid=auto" ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml
 if [ $? -eq 0 ] ; then
 	return 0
 else
 	return 1
 fi
-
-}
-
-function _kvm_prio { # Afficher la priorité de la VM
-#- Arg 1 => nom de la VM
-#- priorité de 1 à 99, correspond à l'ordre d'activation de la VM
-#- utiliser la liste inversée pour la désactivation
-#- pas de priorité => 99 par défaut
-
-local p
-
-p=$(virsh desc ${1} |egrep '^prio=[0-9]+$')
-p=${p#*=}
-p=${p:-99}
-
-echo ${p}
-
-return 0
 
 }
 
@@ -187,7 +250,7 @@ if [ $? -ne 0 ] ; then
 		rm ${KVM_BACKUP_DIR}/${1}.backup
 
 		# Mise à l'heure de la VM
-		_kvm_ga_timesync ${1}
+		_kvm_has_ga ${1} && _kvm_ga_timesync ${1}
 
 		return 0
 
@@ -229,12 +292,6 @@ if [ $? -ne 0 ] ; then
 		return 1
 
 	else
-
-		# Activer Qemu Guest Agent pour la VM
-		_kvm_ga_enable ${1}
-
-		# Activer la fonctionnalité "VM GenerationID" (AD / serveur Windows)
-		_kvm_vmgenid_enable ${1}
 
 		virsh start ${1} |grep -v '^$'
 		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
@@ -366,7 +423,7 @@ _kvm_is_freezed ${1}
 if [ $? -eq 0 ] ; then
 	virsh resume ${1} |grep -v '^$'
 	# Mise à l'heure de la VM
-	_kvm_ga_timesync ${1}
+	_kvm_has_ga && _kvm_ga_timesync ${1}
 fi
 
 return 0
@@ -375,57 +432,190 @@ return 0
 
 ########################################################################
 
-function _kvm_vmgenid_enable { # Activer VM GenerationID pour une VM
+function _kvm_custom { # Activer le démarrage automatique d'une VM
 #- Arg 1 => nom de la VM
-#- Vérification: virsh qemu-monitor-command NOM_VM --hmp info vm-generation-id
-
-local b
-local e
-local f
+#- Arg 2 => propriété (autostart|autobackup|prio)
+#- Arg 3 => enable|disable|00-99
 
 if [ -z "${1}" ] ; then
 	ERROR "VM name is required"
 	return 1
 fi
 
+local b
+local e
+local f
+local m
+local c_autostart
+local c_autobackup
+local c_prio
+
+# Lire les propriétés custom de la VM
+_kvm_has_autostart ${1} && c_autostart=enabled || c_autostart=disabled
+_kvm_has_autobackup ${1} && c_autobackup=enabled || c_autobackup=disabled
+c_prio=$(_kvm_prio ${1})
+
+case ${2} in
+
+	autostart)
+		case ${3} in
+			enable)
+				c_autostart="enabled"
+				m=1
+			;;
+			disable)
+				c_autostart="disabled"
+				m=1
+			;;
+		esac
+	;;
+
+	autobackup)
+		case ${3} in
+			enable)
+				c_autobackup="enabled"
+				m=1
+			;;
+			disable)
+				c_autobackup="disabled"
+				m=1
+			;;
+		esac
+	;;
+
+	prio)
+		if [ ! -z "${3}" ] &&  [ -z "$(echo -n ${3} |tr -d '0-9')" ] ; then
+			c_prio="${3}"
+			m=1
+		fi
+	;;
+
+esac
+
+if [ ! -z "${m}" ] ; then
+	# Copie du fichier XML d'origine
+	f=$(mktemp --suffix .xml)
+	cp ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ${f}
+	
+	b=$(grep -n "<metadata>" ${f} |cut -d: -f1)
+	e=$(grep -n "</metadata>" ${f} |cut -d: -f1)
+	if [ ! -z "${b}" ] && [ ! -z "${e}" ] ; then
+		# extraire une copie du bloc "metadata"
+		sed -n "${b},${e}p" ${f} > ${f}.metadata
+		# supprimer le bloc "metadata" du fichier XML
+		sed -i "${b},${e}d" ${f}
+		b=$(grep -n "<urca:custom " ${f}.metadata |cut -d: -f1)
+		e=$(grep -n "</urca:custom>" ${f}.metadata |cut -d: -f1)
+		if [ ! -z "${b}" ] && [ ! -z "${e}" ] ; then
+			# supprimer le bloc "custom:urca"
+			((b++))
+			sed -i "${b},${e}d" ${f}.metadata
+		fi
+		sed -i "s/<\/metadata>//" ${f}.metadata
+		cat<<EOF >> ${f}.metadata
+<autostart>${c_autostart}</autostart>
+<autobackup>${c_autobackup}</autobackup>
+<prio>${c_prio}</prio>
+</urca:custom>
+</metadata>
+EOF
+	else
+		cat<<EOF > ${f}.metadata
+<metadata>
+<urca:custom xmlns:urca="https://github.com/lspagnol/hvm/tree/master/doc">
+<autostart>${c_autostart}</autostart>
+<autobackup>${c_autobackup}</autobackup>
+<prio>${c_prio}</prio>
+</urca:custom>
+</metadata>
+EOF
+	fi
+	
+	sed -i "s/<\/domain>//" ${f}
+	cat ${f}.metadata >> ${f}
+	echo "</domain>" >> ${f}
+	
+	virsh define ${f} |grep -v '^$' 2>/dev/null >/dev/null
+	if [ ${PIPESTATUS[0]} -ne 0 ] ; then
+		WARNING "'virsh define' has failed for VM '${1}'"
+	fi
+
+	rm ${f}
+	rm ${f}.metadata
+
+fi
+
+case ${2} in
+	autostart)
+		echo "Autostart is ${c_autostart}"
+	;;
+	autobackup)
+		echo "Autobackup is ${c_autobackup}"
+	;;
+	prio)
+		echo "Prio is ${c_prio}"
+	;;
+esac
+
+return 0
+
+}
+
+function _kvm_setup_vmgenid { # Activer "VM GenerationID" pour une VM
+#- Arg 1 => nom de la VM
+#- Arg 2 => enable|disable
+#- Note: Vérification ID => "virsh qemu-monitor-command NOM_VM --hmp info vm-generation-id"
+
+if [ -z "${1}" ] ; then
+	ERROR "VM name is required"
+	return 1
+fi
+
+local b
+local e
+local f
+
 # Copie du fichier XML d'origine
 f=$(mktemp --suffix .xml)
 cp ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml ${f}
 
-_kvm_has_vmgenid ${1}
-
-if [ $? -eq 0 ] ; then
-
-	grep -q "vmgenid,guid=auto" ${f}
-	if [ $? -ne 0 ] ; then
-
-		sed -i "s/^<domain type='kvm'>/<domain type='kvm' xmlns:qemu='http:\/\/libvirt.org\/schemas\/domain\/qemu\/1.0'>\n  <qemu:commandline>\n   <qemu:arg value='-device'\/>\n   <qemu:arg value='vmgenid,guid=auto'\/>\n  <\/qemu:commandline>/g" ${f}
-		virsh define ${f} |grep -v '^$' 2>/dev/null >/dev/null
-	
-		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-			WARNING "'virsh define' has failed for VM '${1}'"
+case ${2} in
+	enable)
+		_kvm_has_vmgenid ${1}
+		if [ $? -ne 0 ] ; then
+			sed -i "s/^<domain type='kvm'>/<domain type='kvm' xmlns:qemu='http:\/\/libvirt.org\/schemas\/domain\/qemu\/1.0'>\n  <qemu:commandline>\n   <qemu:arg value='-device'\/>\n   <qemu:arg value='vmgenid,guid=auto'\/>\n  <\/qemu:commandline>/g" ${f}
+			virsh define ${f} |grep -v '^$' 2>/dev/null >/dev/null
+			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
+				WARNING "'virsh define' has failed for VM '${1}'"
+			else
+				echo "VM GenerationID is enabled"
+			fi
+		else
+			echo "VM GenerationID is already enabled"
 		fi
-		
-	fi
-
-else
-
-	grep -q "vmgenid,guid=auto" ${f}
-	if [ $? -eq 0 ] ; then
-
-		sed -i "s/^<domain type='kvm' xmlns:qemu='http:\/\/libvirt.org\/schemas\/domain\/qemu\/1.0'>/<domain type='kvm'>/g" ${f}
-		b=$(grep -n -B2 -A1 "vmgenid,guid=auto" ${f} |head -1 |cut -d- -f1)
-		e=$(grep -n -B2 -A1 "vmgenid,guid=auto" ${f} |tail -1 |cut -d- -f1)
-		sed -i "${b},${e}d" ${f}
-		virsh define ${f} |grep -v '^$' 2>/dev/null >/dev/null
-	
-		if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-			WARNING "'virsh define' has failed for VM '${1}'"
-		fi		
-		
-	fi
-
-fi
+	;;
+	disable)
+		_kvm_has_vmgenid ${1}
+		if [ $? -eq 0 ] ; then
+			sed -i "s/^<domain type='kvm' xmlns:qemu='http:\/\/libvirt.org\/schemas\/domain\/qemu\/1.0'>/<domain type='kvm'>/g" ${f}
+			b=$(grep -n -B2 -A1 "vmgenid,guid=auto" ${f} |head -1 |cut -d- -f1)
+			e=$(grep -n -B2 -A1 "vmgenid,guid=auto" ${f} |tail -1 |cut -d- -f1)
+			sed -i "${b},${e}d" ${f}
+			virsh define ${f} |grep -v '^$' 2>/dev/null >/dev/null
+			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
+				WARNING "'virsh define' has failed for VM '${1}'"
+			else
+				echo "VM GenerationID is disabled"
+			fi
+		else
+			echo "VM GenerationID is already disabled"
+		fi
+	;;
+	*)
+		echo -n "VM GenerationID is "
+		_kvm_has_vmgenid ${1} && echo enabled || echo disabled
+	;;
+esac
 
 rm ${f}
 
@@ -433,8 +623,9 @@ return 0
 
 }
 
-function _kvm_ga_enable { # Activer Qemu Guest Agent pour une VM
+function _kvm_setup_ga { # Activer Qemu Guest Agent pour une VM
 #- Arg 1 => nom de la VM
+#- Arg 2 => enable|disable
 #- Note: l'agent DOIT être installé manuellement dans la VM
 #- Windows: "QEMU guest agent" (CD virtio-win-xxx.iso)
 #- Ubuntu:  "apt-get install qemu-guest-agent"
@@ -444,19 +635,46 @@ if [ -z "${1}" ] ; then
 	return 1
 fi
 
-grep -q "org\.qemu\.guest_agent\." ${KVM_LIBVIRT_ETC_DIR}/qemu/${1}.xml
-if [ $? -ne 0 ] ; then
+local f
 
-	sed "s/##KVM_GUEST##/${1}/g" < ${HVM_BASE}/etc/qemu-ga_tpl.xml > ${HVM_LOCK_DIR}/qemu-ga_${1}.xml
-	virsh attach-device ${1} --persistent --file ${HVM_LOCK_DIR}/qemu-ga_${1}.xml |grep -v '^$' 2>/dev/null >/dev/null
+# Préparation du modèle pour l'ajout du GuestAgent
+f=$(mktemp --suffix .xml)
+sed "s/##KVM_GUEST##/${1}/g" < ${HVM_BASE}/etc/qemu-ga_tpl.xml > ${f}
 
-	if [ ${PIPESTATUS[0]} -ne 0 ] ; then
-		WARNING "'virsh attach-device' has failed for VM '${1}'"
-	fi
+case ${2} in
+	enable)
+		_kvm_has_ga ${1}
+		if [ $? -ne 0 ] ; then
+			virsh attach-device ${1} --config --file ${f} |grep -v '^$' 2>/dev/null >/dev/null
+			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
+				WARNING "'virsh attach-device' has failed for VM '${1}'"
+			else
+				echo "GuestAgent is enabled"
+			fi
+		else
+			echo "GuestAgent is already enabled"
+		fi
+	;;
+	disable)
+		_kvm_has_ga ${1}
+		if [ $? -eq 0 ] ; then
+			virsh detach-device ${1} --config --file ${f} |grep -v '^$' 2>/dev/null >/dev/null
+			if [ ${PIPESTATUS[0]} -ne 0 ] ; then
+				WARNING "'virsh detach-device' has failed for VM '${1}'"
+			else
+				echo "GuestAgent is disabled"
+			fi
+		else
+			echo "GuestAgent is already disabled"
+		fi
+	;;
+	*)
+		echo -n "GuestAgent is "
+		_kvm_has_ga ${1} && echo enabled || echo disabled
+	;;
+esac
 
-	rm ${HVM_LOCK_DIR}/qemu-ga_${1}.xml
-
-fi
+rm ${f}
 
 return 0
 

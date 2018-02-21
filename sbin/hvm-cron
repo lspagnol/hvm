@@ -59,8 +59,8 @@ echo
 ########################################################################
 
 # Contrainte d'hébergement de l'hyperviseur
-if [ -f ${HVM_TMP_DIR}/constraint ] ; then
-	c=$(<${HVM_TMP_DIR}/constraint)
+if [ -f ${HVM_VARLIB_DIR}/constraint ] ; then
+	c=$(<${HVM_VARLIB_DIR}/constraint)
 	c=(${c})
 	h=${c[0]} # hôte
 	b=${c[1]} # timestamp début
