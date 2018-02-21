@@ -514,6 +514,7 @@ echo
 echo "* Compare snapshots '${t2}' between hosts"
 _zfs_snap_compare ${t2}
 if [ $? -ne 0 ] ; then
+	_kvms_restore
 	UNLOCK_REMOTE
 	ABORT "zfs snapshots '${t2}' are not available on remote host"
 fi
