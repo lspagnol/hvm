@@ -35,7 +35,7 @@ HVM_LOCK_DIR="/tmp/hvm.lock"
 HVM_VARLIB_DIR="/var/lib/hvm"
 
 # HVM: dossiers à démonter lors de l'arrêt de l'hyperviseur (zfs_umount.sh)
-HVM_UMOUNTS="/LIBVIRT/ISO /LIBVIRT/ROT /LIBVIRT/SSD /var/lib/libvirt /etc/libvirt /var/lib/hvm"
+HVM_UMOUNTS="/LIBVIRT/ISO /LIBVIRT/ROT /LIBVIRT/SSD /var/lib/libvirt /etc/libvirt"
 
 # Volumes racine ZFS partagés / synchronisés
 HVM_ZVOLS="SSD/SHARED ROT/SHARED"
