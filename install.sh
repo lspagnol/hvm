@@ -52,7 +52,7 @@ user root
 EOF
 service munin-node stop ; service munin-node start
 
-cp init/hvmd /etc/init.d
+cp init/hvmd.init /etc/init.d/hvmd
 chmod 755 /etc/init.d/hvmd
 update-rc.d -f hvmd defaults
 
