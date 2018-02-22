@@ -40,7 +40,7 @@ case ${1} in
 	start)
 		if [ -z "${PID}" ] ; then
 			# Utiliser 'exec' pour que les signaux INT et QUIT du démon puissent être utilisés
-			exec ${HVM_BASE}/sbin/hvmd --nodaemon 2>/dev/null >/dev/null </dev/null &
+			exec ${HVM_BASE}/sbin/hvmd.daemon --nodaemon 2>/dev/null >/dev/null </dev/null &
 			echo "running"
 		else
 			echo "already running"
@@ -60,6 +60,3 @@ case ${1} in
 		fi
 	;;
 esac
-
-		
-
