@@ -42,8 +42,9 @@ VMs are stopped
 
   -> "hvm backup secure"
 
-** ATTENTION ** le cycle de sauvegarde complet ne prend en charge que
-                les VMs avec le paramètre "autobackup=yes"
+** ATTENTION ** seules les VMs avec la proppriété "autobackup" seront
+                sauvegardées via "hvm backup secure" (sauvegarde de
+                l'état complet de VM).
 
 
 * Migration "sécurisée" des VMs:
@@ -104,6 +105,9 @@ VMs are stopped
 * Il faut essayer de REDEMARRER EN PRIORITE sur le dernier hôte ACTIF:
 - Démarrer l'hyperviseur   -> "hvm hv start"
 - Démarrer les VMs         -> "hvm vms start"
+
+** ATTENTION ** seules les VMs avec la propriété "autostart" seront
+                démarrées via "hvm vms start".
 
 
 * Si les VMs sont HS / inconsistantes, il faut restaurer leur état à
