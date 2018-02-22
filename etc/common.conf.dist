@@ -60,7 +60,7 @@ HVMD_PIDFILE="/var/run/hvmd.pid"
 HVMD_GATEWAY_PING_RETRY="5"
 
 # Attente entre chaque boucle du démon de surveillance
-HVMD_SLEEP="60"
+HVMD_SLEEP="30"
 #HVMD_SLEEP="5"
 
 ########################################################################
