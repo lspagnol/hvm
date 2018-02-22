@@ -169,11 +169,6 @@ fi
 function _kvm_backup { # Sauvegarder l'état de la VM
 #- Arg 1 => nom de la VM
 
-if [ -z "${1}" ] ; then
-	ERROR "VM name is required"
-	return 1
-fi
-
 mkdir -p ${KVM_BACKUP_DIR}
 
 _kvm_is_running ${1} || _kvm_is_freezed ${1}
@@ -198,11 +193,6 @@ fi
 
 function _kvm_restore { # Restaurer l'état d'une VM
 #- Arg 1 => nom de la VM
-
-if [ -z "${1}" ] ; then
-	ERROR "VM name is required"
-	return 1
-fi
 
 local snap
 
@@ -247,11 +237,6 @@ fi
 function _kvm_start { # Démarrer une VM
 #- Arg 1 => nom de la VM
 
-if [ -z "${1}" ] ; then
-	ERROR "VM name is required"
-	return 1
-fi
-
 local snap
 
 _kvm_is_running ${1}
@@ -295,11 +280,6 @@ function _kvm_shutdown { # Arrêter une VM
 
 local snap
 
-if [ -z "${1}" ] ; then
-	ERROR "VM name is required"
-	return 1
-fi
-
 _kvm_is_freezed ${1}
 if [ $? -eq 0 ] ; then
 	_kvm_unfreeze ${1}
@@ -341,11 +321,6 @@ function _kvm_poweroff { # Forcer l'arrêt d'une VM
 
 local snap
 
-if [ -z "${1}" ] ; then
-	ERROR "VM name is required"
-	return 1
-fi
-
 _kvm_is_running ${1} || _kvm_is_freezed ${1}
 if [ $? -eq 0 ] ; then
 
@@ -375,11 +350,6 @@ fi
 function _kvm_freeze { # Figer une VM
 #- Arg 1 => nom de la VM
 
-if [ -z "${1}" ] ; then
-	ERROR "VM name is required"
-	return 1
-fi
-
 _kvm_is_running ${1}
 if [ $? -eq 0 ] ; then
 	virsh suspend ${1} |grep -v '^$'
@@ -391,11 +361,6 @@ return 0
 
 function _kvm_unfreeze { # Reprise d'une VM figée
 #- Arg 1 => nom de la VM
-
-if [ -z "${1}" ] ; then
-	ERROR "VM name is required"
-	return 1
-fi
 
 _kvm_is_freezed ${1}
 if [ $? -eq 0 ] ; then
