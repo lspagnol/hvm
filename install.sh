@@ -28,8 +28,10 @@ chmod 755 /usr/local/hvm/sbin/hvm
 chmod 755 /usr/local/hvm/sbin/hvm-cron
 chmod 755 /usr/local/hvm/sbin/hvmd.daemon
 chmod 755 /usr/local/hvm/sbin/hvm-interface-config
+chmod 755 /usr/local/hvm/sbin/hvm-upgrade
 ln -fs /usr/local/hvm/sbin/hvm /usr/local/sbin
 ln -fs /usr/local/hvm/sbin/hvm-interface-config /usr/local/sbin/
+ln -fs /usr/local/hvm/sbin/hvm-upgrade /usr/local/sbin/
 
 # Script "maison"
 chmod 755 /usr/local/hvm/sbin/zpool_iostat_

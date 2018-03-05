@@ -1,0 +1,58 @@
+#!/bin/bash
+
+########################################################################
+# Script de mise à jour de l'hyperviseur
+########################################################################
+
+HVM_BASE="/usr/local/hvm"
+HVM_LIB="${HVM_BASE}/sbin/hvm.lib"
+
+########################################################################
+
+source ${HVM_LIB} 2>/dev/null ||\
+ { echo "Aborted: file '${HVM_LIB}' not found" ; exit 1 ; }
+
+########################################################################
+
+# Verrouillage par hôte distant ? => récupérer le nom du verrou
+if [ "${1}" = "--lockfile" ] ; then
+	LOCKFILE=${2}
+	shift ; shift
+fi
+
+########################################################################
+
+LOCK
+
+_hv_status || _zfs_mount
+
+chattr -i /etc/network/interfaces
+chattr -i ${KVM_LIBVIRT_VARLIB_DIR}/images
+
+########################################################################
+
+apt-get update > /dev/null
+
+echo -e "\n\n#### Mise a jour paquets (automatique)"
+apt-get -y upgrade
+
+echo -e "\n\n#### Mise a jour paquets (forcee)"
+L=$(apt-get --show-upgraded upgrade |grep "^[[:space:]]")
+apt-get -y upgrade ${L}
+
+echo -e "\n\n#### Suppression paquets inutiles"
+apt-get -y autoremove --purge
+
+echo -e "\n\n#### Nettoyage cache APT"
+apt-get clean
+
+echo -e "\n\n"
+
+########################################################################
+
+chattr +i /etc/network/interfaces
+chattr +i ${KVM_LIBVIRT_VARLIB_DIR}/images
+
+_hv_status || _zfs_umount
+
+UNLOCK
