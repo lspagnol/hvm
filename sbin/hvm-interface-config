@@ -1,8 +1,33 @@
 #!/bin/bash
 
+########################################################################
+# Script de mise à jour des interfaces réseau
+########################################################################
+
+HVM_BASE="/usr/local/hvm"
+HVM_LIB="${HVM_BASE}/sbin/hvm.lib"
+
+########################################################################
+
+source ${HVM_LIB} 2>/dev/null ||\
+ { echo "Aborted: file '${HVM_LIB}' not found" ; exit 1 ; }
+
+########################################################################
+
+# Verrouillage par hôte distant ? => récupérer le nom du verrou
+if [ "${1}" = "--lockfile" ] ; then
+	LOCKFILE=${2}
+	shift ; shift
+fi
+
+########################################################################
+
+LOCK
+
 F=/etc/network/interfaces
 
 chattr -i ${F}
 nano ${F}
 chattr +i ${F}
 
+UNLOCK
