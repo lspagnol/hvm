@@ -1,9 +1,0 @@
-# Planification maintenance HVM
-
-SHELL=/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/hvm/sbin
-
-MAILTO=kvm-admin@domain.tld
-
-45 12   * * *   root    hvm backup unsecure 2>/dev/null >/dev/null
-00 22   * * *   root    hvm-cron
