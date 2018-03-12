@@ -4,6 +4,9 @@
 # => 2 ports / LACP
 # => La configuration des interfaces de virtualisation DOIT être effectuée
 #    via '/etc/network/interfaces'
+#
+# BUG / Ubuntu 18.04: les paramètres LACP doivent être précisés au
+#                     chargement du module "bonding"
 
 network:
  version: 2
@@ -15,21 +18,12 @@ network:
    eno2:
      dhcp4: false
      dhcp6: false
-   eno3:
-     dhcp4: false
-     dhcp6: false
-   eno4:
-     dhcp4: false
-     dhcp6: false
  bonds:
    bond0:
      interfaces:
        - eno1
        - eno2
      parameters:
-       mode: 802.3ad
-       lacp-rate: fast
-       transmit-hash-policy: layer2+3
      addresses: [10.5.1.174/24]
      gateway4: 10.5.1.254
      nameservers:

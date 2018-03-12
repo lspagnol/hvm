@@ -302,6 +302,7 @@ cp interfaces /etc/network/interfaces
 cp bond1 /etc/network/interfaces.d/
 chattr +i /etc/network/interfaces
 chattr +i /etc/network/interfaces.d/bond1
+cp netcf.conf /etc/modprobe.d/netcf.conf
 
 echo
 

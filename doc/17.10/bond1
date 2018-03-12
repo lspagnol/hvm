@@ -2,6 +2,9 @@
 # => '/etc/network/interfaces.d/bond1'
 # => Libvirt ne peut pas accéder à ces interfaces
 # => 2 interfaces physiques/LACP
+#
+# BUG / Ubuntu 18.04: les paramètres LACP doivent être précisés au
+#                     chargement du module "bonding"
 
 auto eno3
  iface eno3 inet manual
@@ -14,7 +17,3 @@ auto eno4
 auto bond1
  iface bond1 inet manual
  bond-slaves eno3 eno4
- bond-mode 802.3ad
- bond-miion 100
- bond-lacp-rate fast
- bond-xmit_hash_policy layer2+3
