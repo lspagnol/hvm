@@ -1,0 +1,18 @@
+# Exemple de configuration des interfaces réseau pour Libvirt
+# => '/etc/network/interfaces'
+# => Libvirt peut accéder à ces interfaces
+# => Définition des VLANs utilisés par Libvirt
+
+source /etc/network/interfaces.d/bond1
+
+auto vlan51
+ iface vlan51 inet manual
+ bridge_ports bond1.51
+ bridge_stp off
+ bridge_fd 0
+
+auto vlan95
+ iface vlan95 inet manual
+ bridge_ports bond1.95
+ bridge_stp off
+ bridge_fd 0

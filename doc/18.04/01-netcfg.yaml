@@ -1,0 +1,31 @@
+# Exemple de configuration des interfaces réseau pour l'hyperviseur
+# => '/etc/netplan/01-netcfg.yaml'
+#
+# => 2 ports / LACP
+# => La configuration des interfaces de virtualisation DOIT être effectuée
+#    via '/etc/network/interfaces'
+#
+# BUG / Ubuntu 18.04: les paramètres LACP doivent être précisés au
+#                     chargement du module "bonding"
+
+network:
+ version: 2
+ renderer: networkd
+ ethernets:
+   eno1:
+     dhcp4: false
+     dhcp6: false
+   eno2:
+     dhcp4: false
+     dhcp6: false
+ bonds:
+   bond0:
+     interfaces:
+       - eno1
+       - eno2
+     parameters:
+     addresses: [10.5.1.174/24]
+     gateway4: 10.5.1.254
+     nameservers:
+       addresses: [193.50.208.4]
+       search: [univ-reims.fr]

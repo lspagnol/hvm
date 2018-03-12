@@ -1,0 +1,19 @@
+# Exemple de configuration des interfaces réseau pour Libvirt
+# => '/etc/network/interfaces.d/bond1'
+# => Libvirt ne peut pas accéder à ces interfaces
+# => 2 interfaces physiques/LACP
+#
+# BUG / Ubuntu 18.04: les paramètres LACP doivent être précisés au
+#                     chargement du module "bonding"
+
+auto eno3
+ iface eno3 inet manual
+ bond-master bond1
+
+auto eno4
+ iface eno4 inet manual
+ bond-master bond1
+
+auto bond1
+ iface bond1 inet manual
+ bond-slaves eno3 eno4
