@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Plugin Nagios / iDrac
+# Lien symboliques:
+# nagios-iDrac_ -> nagios-iDrac_pdisk
+# nagios-iDrac_ -> nagios-iDrac_sensor
+
+m=$(basename ${0})
+m=${m#*_}
+
+case ${m} in
+
+	pdisk)
+		racadm raid get pdisks -o -p status |grep Status |grep -qv "= Ok"
+		if [ $? -ne 1 ] ; then
+			echo "WARNING: racadm raid get pdisks -o -p status"
+			exit 1
+		else
+			echo "OK"
+			exit 0
+		fi
+	;;
+
+	sensor)
+		racadm getsensorinfo |egrep -v "^Sensor Type :|^<|^$|^\[" |egrep -qv "Ok|N/A|Good|Full Redundant|Present|Closed"
+		if [ $? -ne 1 ] ; then
+			echo "WARNING: racadm getsensorinfo"
+			exit 1
+		else
+			echo "OK"
+			exit 0
+		fi
+	;;
+
+esac
