@@ -35,6 +35,7 @@ ln -fs /usr/local/hvm/sbin/hvm-upgrade /usr/local/sbin/
 
 # Script "maison"
 chmod 755 /usr/local/hvm/sbin/zpool_iostat_
+chmod 755 /usr/local/hvm/sbin/nagios-iDrac_
 # "zfs_arcstats" => https://github.com/munin-monitoring/contrib/blob/master/plugins/zfs/zfs_arcstats
 chmod 755 /usr/local/hvm/sbin/zfs_arcstats
 sed -i 's/graph_category fs/graph_category zfs/g' /usr/local/hvm/sbin/zfs_arcstats
@@ -45,6 +46,8 @@ ln -fs /usr/local/hvm/sbin/zpool_iostat_ /etc/munin/plugins/zpool_iostat_bytes
 ln -fs /usr/local/hvm/sbin/zpool_iostat_ /etc/munin/plugins/zpool_iostat_iops
 ln -fs /usr/local/hvm/sbin/zfs_arcstats /etc/munin/plugins/zfs_arcstats
 ln -fs /usr/local/hvm/sbin/zpool_capacity /etc/munin/plugins/zpool_capacity
+ln -fs /usr/local/hvm/sbin/nagios-iDrac_ /usr/local/hvm/sbin/nagios-iDrac_pdisk
+ln -fs /usr/local/hvm/sbin/nagios-iDrac_ /usr/local/hvm/sbin/nagios-iDrac_sensor
 cat<<EOF>/etc/munin/plugin-conf.d/zfs
 [zpool*]
 user root
