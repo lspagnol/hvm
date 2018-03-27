@@ -25,7 +25,6 @@ fi
 LOCK
 
 _hv_status || _zfs_mount
-
 chattr -i /etc/network/interfaces
 chattr -i ${KVM_LIBVIRT_VARLIB_DIR}/images
 
@@ -37,6 +36,7 @@ apt-get update > /dev/null
 echo -e "\n\n#### Mise a jour paquets (automatique)"
 apt-get -y upgrade
 
+_hv_status || _zfs_mount
 echo -e "\n\n#### Mise a jour paquets (forcee)"
 L=$(apt-get --show-upgraded upgrade |grep "^[[:space:]]")
 apt-get -y upgrade ${L}
@@ -51,6 +51,7 @@ echo -e "\n\n"
 
 ########################################################################
 
+_hv_status || _zfs_mount
 chattr +i /etc/network/interfaces
 chattr +i ${KVM_LIBVIRT_VARLIB_DIR}/images
 
