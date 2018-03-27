@@ -5,6 +5,7 @@
 #
 # BUG / Ubuntu 18.04: les paramètres LACP doivent être précisés au
 #                     chargement du module "bonding"
+#                     -> voir "netcf.conf"
 
 auto eno3
  iface eno3 inet manual
