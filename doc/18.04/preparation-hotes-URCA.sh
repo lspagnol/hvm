@@ -331,6 +331,17 @@ cp -f zfs-tuning /usr/local/sbin
 echo
 
 ########################################################################
+echo "* Installation outils iDrac Dell"
+
+echo 'deb http://linux.dell.com/repo/community/ubuntu xenial openmanage' | sudo tee -a /etc/apt/sources.list.d/linux.dell.com.sources.list
+gpg --keyserver pool.sks-keyservers.net --recv-key 1285491434D8786F
+gpg -a --export 1285491434D8786F | sudo apt-key add - 
+apt-get update
+apt-get -y install srvadmin-idracadm8
+
+echo
+
+########################################################################
 cat<<EOF
 ** Préparation terminée ! **
 
