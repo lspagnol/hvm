@@ -8,6 +8,7 @@
     - Scheduled or manual switching of hypervisors
     - Watchdog daemon of hypervisors (avoid split-brain)
     - Integration of "VM GenerationID" functionality (Microsoft AD servers)
+    - ...
 
 **HVM** est un outil destiné à gérer automatiquement deux hyperviseurs KVM/Libvirt/ZFS/Ubuntu en mode ACTIF/PASSIF
   * Fonctionnalités:
@@ -17,4 +18,5 @@
     - Permutation manuelle ou programmée des hyperviseurs
     - Démon de surveillance des hyperviseurs (éviter le "split-brain")
     - Intégration de la fonctionnalité "VM GenerationID" (Serveurs AD Microsoft)
-    
+    - ...
+    - => voir https://github.com/lspagnol/hvm/blob/master/doc/hvm_help-fr.txt
