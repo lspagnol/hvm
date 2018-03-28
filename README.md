@@ -2,7 +2,7 @@
 
 **HVM** is a tool designed for two KVM/libvirt/ZFS/Ubuntu hypervisors in ACTIVE/PASSIVE mode
   * Features:
-    - VMs management with Libvirt et Virt-Manager
+    - VMs management with Libvirt and Virt-Manager
     - Automatic sync / backup of hypervisors
     - Periodic and automtatic switching of hypervisors
     - Scheduled or manual switching of hypervisors
