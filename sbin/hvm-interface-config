@@ -32,11 +32,13 @@ chattr +i ${F}
 
 UNLOCK
 
-if [ -d /etc/munin/plugins ] ; then
-	rm /etc/munin/plugins/if_vlan* 2>/dev/null
-	rm /etc/munin/plugins/if_err_vlan* 2>/dev/null
-	for i in $(grep "iface" ${F} |grep "vlan" |awk '{print $2}') ; do
-		ln -s /usr/share/munin/plugins/if_ /etc/munin/plugins/if_${i}
-	done
-	service munin-node restart
-fi
+# Pas de métriques sur /sys/class/net/vlan*/statistics/rx_*
+# => inutile !!
+#if [ -d /etc/munin/plugins ] ; then
+	#rm /etc/munin/plugins/if_vlan* 2>/dev/null
+	#rm /etc/munin/plugins/if_err_vlan* 2>/dev/null
+	#for i in $(grep "iface" ${F} |grep "vlan" |awk '{print $2}') ; do
+		#ln -s /usr/share/munin/plugins/if_ /etc/munin/plugins/if_${i}
+	#done
+	#service munin-node restart
+#fi
