@@ -114,11 +114,10 @@ zpool create -f -o ashift=12 -O atime=off -O compression=lz4 -O normalization=fo
 
  24) # Reims (2 JBODs: 2x12 rotatifs)
 devs=$(ls /dev/disk/by-id/ |grep '^scsi\-'|grep -v "\-part[0-9]")
-devs=(${devs})
 zpool create -f -o ashift=12 -O atime=off -O compression=lz4 -O normalization=formD -O mountpoint=none ROT\
  raidz2 ${devs[0]} ${devs[1]} ${devs[2]} ${devs[3]}\
  raidz2 ${devs[4]} ${devs[5]} ${devs[6]} ${devs[7]}\
- raidz2 ${devs[8]} ${devs[9]} ${devs[10]} ${devs[11]}
+ raidz2 ${devs[8]} ${devs[9]} ${devs[10]} ${devs[11]}\
  raidz2 ${devs[12]} ${devs[13]} ${devs[14]} ${devs[15]}\
  raidz2 ${devs[16]} ${devs[17]} ${devs[18]} ${devs[19]}\
  raidz2 ${devs[20]} ${devs[21]} ${devs[22]} ${devs[23]}
