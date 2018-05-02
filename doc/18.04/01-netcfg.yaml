@@ -27,5 +27,7 @@ network:
      addresses: [10.5.1.174/24]
      gateway4: 10.5.1.254
      nameservers:
-       addresses: [193.50.208.4]
-       search: [univ-reims.fr]
+         search: [ interne.univ-reims.fr ]
+         addresses:
+             - "193.50.208.4"
+             - "194.57.104.104"
