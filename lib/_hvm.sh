@@ -171,7 +171,7 @@ echo -n "* Last remote snapshot is '${last_snap_rem} - "
 date -d @${last_snap_rem} +"%d/%m/%Y %T (%a)'"
 echo
 
-# Vérifier l'état des snapshots entre les deux hôtes
+# Comparer l'état des snapshots entre les deux hôtes
 echo "* Compare snapshots '${last_snap_rem}' between hosts"
 _zfs_snap_compare ${last_snap_rem}
 if [ $? -ne 0 ] ; then
@@ -284,12 +284,12 @@ echo -n "* Last remote snapshot is '${last_snap_rem} - "
 date -d @${last_snap_rem} +"%d/%m/%Y %T (%a)'"
 echo
 
-# Vérifier l'état des snapshots entre les deux hôtes
-echo "* Compare snapshots '${last_snap_loc}' between hosts"
-_zfs_snap_compare ${last_snap_loc}
+# Comparer l'état des snapshots entre les deux hôtes
+echo "* Compare snapshots '${last_snap_rem}' between hosts"
+_zfs_snap_compare ${last_snap_rem}
 if [ $? -ne 0 ] ; then
 	UNLOCK_REMOTE
-	ABORT "zfs snapshots '${last_snap_loc}' are not available on remote host"
+	ABORT "zfs snapshots '${last_snap_rem}' are not available on local host"
 fi
 echo
 
@@ -302,8 +302,9 @@ fi
 echo
 
 echo "* Rollback storage on remote host"
-ssh ${node_rem} "hvm func _zfs_snap_rollback ${last_snap_loc}"
+ssh ${node_rem} "hvm func _zfs_snap_rollback ${last_snap_rem}"
 echo
+
 
 echo "* Create recursive ZFS snapshots"
 _zfs_snap_create ${t0}
@@ -416,12 +417,12 @@ echo -n "* Last remote snapshot is '${last_snap_rem} - "
 date -d @${last_snap_rem} +"%d/%m/%Y %T (%a)'"
 echo
 
-# Vérifier l'état des snapshots entre les deux hôtes
-echo "* Compare snapshots '${last_snap_loc}' between hosts"
-_zfs_snap_compare ${last_snap_loc}
+# Comparer l'état des snapshots entre les deux hôtes
+echo "* Compare snapshots '${last_snap_rem}' between hosts"
+_zfs_snap_compare ${last_snap_rem}
 if [ $? -ne 0 ] ; then
 	UNLOCK_REMOTE
-	ABORT "zfs snapshots '${last_snap_loc}' are not available on remote host"
+	ABORT "zfs snapshots '${last_snap_rem}' are not available on local host"
 fi
 echo
 
@@ -434,8 +435,9 @@ fi
 echo
 
 echo "* Rollback storage on remote host"
-ssh ${node_rem} "hvm func _zfs_snap_rollback ${last_snap_loc}"
+ssh ${node_rem} "hvm func _zfs_snap_rollback ${last_snap_rem}"
 echo
+
 
 # 1ère synchro ZFS (à chaud)
 
