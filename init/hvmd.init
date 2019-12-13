@@ -42,6 +42,19 @@ case ${1} in
 			# Utiliser 'exec' pour que les signaux INT et QUIT du démon puissent être utilisés
 			exec ${HVM_BASE}/sbin/hvmd.daemon --nodaemon 2>/dev/null >/dev/null </dev/null &
 			echo "running"
+			if [ -f /var/lib/HV_WAS_RUNNING_HERE ] ; then
+				# L'hyperviseur a été arrêté brutalement, tenter le démarrage automatique
+				# Démarrage différé pour laisser le temps aux interfaces réseau de monter
+				sleep ${HVMD_HV_AUTOSTART_DELAY}
+				hvm hv start
+				if [ ${?} -eq 0 ] ; then
+					hvm vms start
+				else
+					# L'hyperviseur n'a pas pu redémarrer (intervention manuelle sur l'autre serveur ?)
+					# -> neutraliser le démarrage automatique sur ce noeud
+					rm /var/lib/HV_WAS_RUNNING_HERE
+				fi
+			fi
 		else
 			echo "already running"
 		fi

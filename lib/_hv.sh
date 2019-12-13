@@ -46,6 +46,12 @@ else
 	service libvirt-bin start
 fi
 
+if [ ${?} -eq 0 ] ; then
+	if [ "${HVMD_HV_AUTOSTART}" = "1" ] ; then
+		date > /var/lib/HV_WAS_RUNNING_HERE
+	fi
+fi
+
 return 0
 
 }
@@ -60,6 +66,11 @@ if [ -f /etc/init.d/libvirtd ] ; then
 else
 	service libvirt-bin stop
 fi
+
+if [ ${?} -eq 0 ] ; then
+	[ -f /var/lib/HV_WAS_RUNNING_HERE ] && rm /var/lib/HV_WAS_RUNNING_HERE
+fi
+
 service virtlockd stop
 service virtlogd stop
 

@@ -63,6 +63,13 @@ HVMD_GATEWAY_PING_RETRY="5"
 HVMD_SLEEP="30"
 #HVMD_SLEEP="5"
 
+# Démarrage automatique de l'hyperviseur ?
+HVMD_HV_AUTOSTART="0"
+# HVMD_HV_AUTOSTART="1"
+
+# Délai d'attente avant le démarrage automatique de l'hyperviseur
+HVMD_HV_AUTOSTART_DELAY="120"
+
 ########################################################################
 
 # Migration automatique des VMs (bascule ACTIF/PASSIF) pendant la
